@@ -1,1 +1,0 @@
-# HW_computer_graphics_openGL
