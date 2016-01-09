@@ -1,25 +1,18 @@
-﻿Build started 31/12/2015 19:09:35.
-     1>Project "C:\Users\USER\Desktop\גרפיקה ממוחשבת חומר לתרגול\Code\HW3\CG\CG.vcxproj" on node 2 (build target(s)).
-     1>InitializeBuildStatus:
-         Creating "Debug\CG.unsuccessfulbuild" because "AlwaysCreate" was specified.
-       ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\ /ZI /nologo /W3 /WX- /Od /Oy- /D FREEGLUT_STATIC /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp Utils.cpp
+﻿Build started 1/9/2016 9:11:26 PM.
+     1>Project "C:\Users\USER\Documents\src\HW_computer_graphics_openGL\CG\CG.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /I..\ /ZI /nologo /W3 /WX- /Od /Oy- /D FREEGLUT_STATIC /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp Utils.cpp
          Utils.cpp
          Main.cpp
          Generating Code...
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\USER\Desktop\גרפיקה ממוחשבת חומר לתרגול\Code\HW3\Debug\CG.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:..\AntTweakBar\lib /LIBPATH:..\Glew\lib /LIBPATH:..\freeglut\lib\x86\Debug AntTweakBar.lib glew32.lib freeglut_static.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\CG.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\USER\Desktop\גרפיקה ממוחשבת חומר לתרגול\Code\HW3\Debug\CG.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\USER\Desktop\גרפיקה ממוחשבת חומר לתרגול\Code\HW3\Debug\CG.lib" /MACHINE:X86 Debug\Main.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\USER\Documents\src\HW_computer_graphics_openGL\Debug\CG.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:..\AntTweakBar\lib /LIBPATH:..\Glew\lib /LIBPATH:..\freeglut\lib\x86\Debug AntTweakBar.lib glew32.lib freeglut_static.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\USER\Documents\src\HW_computer_graphics_openGL\Debug\CG.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\USER\Documents\src\HW_computer_graphics_openGL\Debug\CG.lib" /MACHINE:X86 /SAFESEH Debug\Main.obj
          Debug\Utils.obj
-     1>Main.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
+     1>Main.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification
      1>LINK : warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs; use /NODEFAULTLIB:library
-         CG.vcxproj -> C:\Users\USER\Desktop\גרפיקה ממוחשבת חומר לתרגול\Code\HW3\Debug\CG.exe
-       Manifest:
-         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\USER\Desktop\גרפיקה ממוחשבת חומר לתרגול\Code\HW3\Debug\CG.exe;#1" /manifest Debug\CG.exe.intermediate.manifest
-       FinalizeBuildStatus:
-         Deleting file "Debug\CG.unsuccessfulbuild".
-         Touching "Debug\CG.lastbuildstate".
-     1>Done Building Project "C:\Users\USER\Desktop\גרפיקה ממוחשבת חומר לתרגול\Code\HW3\CG\CG.vcxproj" (build target(s)).
+         CG.vcxproj -> C:\Users\USER\Documents\src\HW_computer_graphics_openGL\Debug\CG.exe
+     1>Done Building Project "C:\Users\USER\Documents\src\HW_computer_graphics_openGL\CG\CG.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:02.24
+Time Elapsed 00:00:10.00
