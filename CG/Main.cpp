@@ -12,13 +12,56 @@
 
 #include "Utils.h"
 
+#define PI 3.14159265358979323846 
 
 
 
 float g_scale = 1.0f;
-float g_quaternion[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+float g_quaternion[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 bool g_drawWireframe = false;
 //bool g_drawWireframe = true;
+
+
+unsigned int g_Color = 0xff0000ff;
+
+double g_Swidth = 1366;
+double g_Sheight = 768;
+
+double g_near = 0.01;
+double g_far = 10000;
+double g_fovy = 60;
+
+double g_translationX = 0.0;
+double g_translationY = 0.0;
+double g_translationZ = 0.0;
+
+
+//global veriables for glut functions
+bool g_reset = false;
+bool g_centerCam = false;
+bool g_showCrdSystem = false;
+bool g_normals = false;
+bool g_bbox = false;
+bool g_projectionType = true;
+bool g_space = false;//initialize to object space
+double g_normals_size = 1;
+
+double g_ambient = 0.1;
+double g_diffuse = 0.6;
+double g_specular = 0.7;
+double g_specularExp = 32;
+double g_xLightPosition = 0.0;
+double g_yLightPosition = 0.0;
+double g_zLightPosition = 0.0;
+double g_xLightDirection = 0.0;
+double g_yLightDirection = 0.0;
+double g_zLightDirection = -5;
+bool g_lightType = false;
+unsigned int g_lightIntensity = 0xffffff;
+unsigned int g_ambientLight = 0xffffff;
+TwType shadingType;
+bool g_mesh = false;
+
 
 
 GLuint g_vertexArrayID = 0;
@@ -29,6 +72,9 @@ GLuint g_programID = 0;
 
 
 void TW_CALL loadOBJModel(void* clientData);
+void TW_CALL applyTranslation(void* clientData);
+void TW_CALL applyLight1(void* clientData);
+void TW_CALL applyLight2(void* clientData);
 void initScene();
 void initGraphics(int argc, char *argv[]);
 void drawScene();
@@ -67,19 +113,60 @@ int main(int argc, char *argv[])
 
 	atexit(Terminate);  // Called after glutMainLoop ends
 
-	// Create a tweak bar
+						// Create a tweak bar
 	TwBar* bar = TwNewBar("TweakBar");
 
 	TwDefine(" GLOBAL help='This example shows how to integrate AntTweakBar with GLUT and OpenGL.' "); // Message added to the help bar.
-	TwDefine(" TweakBar size='200 400' color='96 216 224' "); // change default tweak bar size and color
+	TwDefine(" TweakBar size='200 600' color='96 216 224' "); // change default tweak bar size and color
+
+	TwAddButton(bar, "LoadOBJ", loadOBJModel, NULL, "help='button to load obf file'");
+	TwAddSeparator(bar, NULL, NULL);
+
+	TwAddVarRW(bar, "reset", TW_TYPE_BOOLCPP, &g_reset, "help='reset everything'");
+	TwAddVarRW(bar, "OW space", TW_TYPE_BOOLCPP, &g_space, " help='true=transforma in world space ,false=transform in object space' ");
+	TwAddVarRW(bar, "OW Crd System", TW_TYPE_BOOLCPP, &g_showCrdSystem, " help='boolean variable to indicate if to show WO coordinate system or not.' ");
+	TwAddVarRW(bar, "showBbox", TW_TYPE_BOOLCPP, &g_bbox, " help='boolean variable to indicate if to show the bbox or not.' ");
+
+	TwAddVarRW(bar, "showNormals", TW_TYPE_BOOLCPP, &g_normals, " help='boolean variable to indicate if to show normals or not.' group='normals'");
+	TwAddVarRW(bar, "normalsSize", TW_TYPE_DOUBLE, &g_normals_size, " min=0.1 max=100 step=0.1 keyIncr=t keyDecr=T help='Change notmals size (20=original size).' group='normals'");
+	TwAddVarRW(bar, "projectionType", TW_TYPE_BOOLCPP, &g_projectionType, " help='true = orthographic, false = perspective.' group='camera'");
+	TwAddVarRW(bar, "near", TW_TYPE_DOUBLE, &g_near, "step=0.01 keyIncr=n keyDecr=N  group='camera'");
+	TwAddVarRW(bar, "far", TW_TYPE_DOUBLE, &g_far, "step=0.1 keyIncr=f keyDecr=F  group='camera'");
+	TwAddVarRW(bar, "fovy", TW_TYPE_DOUBLE, &g_fovy, "step=0.1 keyIncr=v keyDecr=V  group='camera'");
+
+	TwAddVarRW(bar, "centerCamera", TW_TYPE_BOOLCPP, &g_centerCam, "help='point the camera to the center of the model'  group='camera'");
+
+	TwAddVarRW(bar, "translate X", TW_TYPE_DOUBLE, &g_translationX, "min=-30 max=30 step=1 keyIncr=right keyDecr=left   group='tranfromations' ");
+	TwAddVarRW(bar, "translate Y", TW_TYPE_DOUBLE, &g_translationY, "min=-30 max=30 step=1 keyIncr=up keyDecr=down   group='tranfromations' ");
+	TwAddVarRW(bar, "translate Z", TW_TYPE_DOUBLE, &g_translationZ, "min=-30 max=30 step=1 keyIncr=> keyDecr=<   group='tranfromations' ");
+	TwAddButton(bar, "apply translation", applyTranslation, NULL, "help='apply translation' group='tranfromations' ");
 
 	//add 'g_Zoom' to 'bar': this is a modifiable (RW) variable of type TW_TYPE_FLOAT. Its key shortcuts are [z] and [Z].
-	TwAddVarRW(bar, "Scale", TW_TYPE_FLOAT, &g_scale, " label='Scale' min=-10.0 max=10.0 step=0.01 group=Engine ");
+	TwAddVarRW(bar, "Scale", TW_TYPE_FLOAT, &g_scale, " label='Scale' min=-10.0 max=10.0 step=0.01 group=tranfromations ");
 
 	//add 'g_quaternion' to 'bar': this is a variable of type TW_TYPE_QUAT4D which defines the object's orientation using quaternions
 	TwAddVarRW(bar, "Rotation", TW_TYPE_QUAT4F, &g_quaternion, " label='Object rotation' opened=true help='This is object rotation' ");
 
-	TwAddButton(bar, "open", loadOBJModel, NULL, " label='Open OBJ File...' ");
+	TwAddVarRW(bar, "ambient", TW_TYPE_DOUBLE, &g_ambient, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
+	TwAddVarRW(bar, "diffuse", TW_TYPE_DOUBLE, &g_diffuse, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
+	TwAddVarRW(bar, "specular", TW_TYPE_DOUBLE, &g_specular, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
+	TwAddVarRW(bar, "specularExp", TW_TYPE_DOUBLE, &g_specularExp, "min = 0 max = 1000 step=1 keyIncr=z keyDecr=Z   group='material' ");
+
+	TwAddVarRW(bar, "x-position", TW_TYPE_DOUBLE, &g_xLightPosition, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "y-position", TW_TYPE_DOUBLE, &g_yLightPosition, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "z-position", TW_TYPE_DOUBLE, &g_zLightPosition, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "x-direction", TW_TYPE_DOUBLE, &g_xLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "y-direction", TW_TYPE_DOUBLE, &g_yLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "z-direction", TW_TYPE_DOUBLE, &g_zLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "point/directional", TW_TYPE_BOOLCPP, &g_lightType, "help='false=point, true=directional'  group='light'");
+	TwAddVarRW(bar, "light intensity", TW_TYPE_COLOR32, &g_lightIntensity, " coloralpha=true colormode=rgb group='light'");
+	TwAddButton(bar, "apply on light 1", &applyLight1, NULL, " help='apply scale' group='light' ");
+	TwAddButton(bar, "apply on light 2", &applyLight2, NULL, " help='apply scale' group='light' ");
+	TwAddVarRW(bar, "ambient light intensity", TW_TYPE_COLOR32, &g_ambientLight, "coloralpha=true colormode=rgb group='light' ");
+
+	shadingType = TwDefineEnum("ShadingType", NULL, 0);
+	//TwAddVarRW(bar, "shading type", shadingType, &g_shadingType, " enum='0 {FLAT}, 1 {GOURAUD}, 2 {PHONG}' group='shading'");
+	TwAddVarRW(bar, "show mesh model", TW_TYPE_BOOLCPP, &g_mesh, "help='false=shading, true=meshmodel'  group='shading'");
 
 	// Call the GLUT main loop
 	glutMainLoop();
@@ -118,7 +205,7 @@ void initScene()
 
 	//create, load, compile, attach vertex and fragment shader
 	g_programID = initShader("..\\Shaders\\vertexShader.glsl", "..\\Shaders\\fragmentShader.glsl");
-	if(!g_programID)
+	if (!g_programID)
 	{
 		std::cout << "\nFatal Error in shader creation!\n\a\a\a";
 		return;
@@ -133,7 +220,7 @@ void initScene()
 	glVertexAttribPointer(vPosition_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
 
-	GLuint vColor_id = glGetAttribLocation(g_programID, "vColor" );
+	GLuint vColor_id = glGetAttribLocation(g_programID, "vColor");
 	glEnableVertexAttribArray(vColor_id);
 	//note that the pointer offset is not 0, indicating that the color data in the vertex array buffer starts right after the geometry data.
 	glVertexAttribPointer(vColor_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(numV*sizeof(point4)));
@@ -146,6 +233,15 @@ void TW_CALL loadOBJModel(void* clientData)
 	std::wstring str = getOpenFileName();
 	std::wcout << str << "\n";
 }
+void TW_CALL applyTranslation(void* clientData) {
+
+}
+void TW_CALL applyLight1(void* clientData) {
+
+}
+void TW_CALL applyLight2(void* clientData) {
+
+}
 
 
 void initGraphics(int argc, char *argv[])
@@ -155,14 +251,14 @@ void initGraphics(int argc, char *argv[])
 	glutInitContextVersion(3, 2);
 	glutInitContextFlags(GLUT_CORE_PROFILE);
 	//glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
-	
+
 	//glutInitContextVersion(2, 0);
 	//glutInitContextVersion(3, 0);
-	
-	
+
+
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); //use a framebuffer with double buffering and RGBA format. Use a z-buffer
-	
+
 	glutInitWindowSize(800, 800);
 	glutCreateWindow("Computer Graphics Skeleton using: OpenGL, AntTweakBar, freeGLUT, glew");
 	glutCreateMenu(NULL);
@@ -173,7 +269,7 @@ void initGraphics(int argc, char *argv[])
 	// Initialize GLEW
 	glewExperimental = GL_TRUE;
 	GLenum err = glewInit();
-	if(err != GLEW_OK)
+	if (err != GLEW_OK)
 	{
 		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
 		assert(0);
@@ -189,7 +285,7 @@ void initGraphics(int argc, char *argv[])
 
 void drawScene()
 {
-	if(g_programID == 0)
+	if (g_programID == 0)
 	{
 		return;
 	}
@@ -219,7 +315,7 @@ void drawScene()
 	GLuint scale_id = glGetUniformLocation(g_programID, "scale");
 	glUniform1f(scale_id, g_scale);
 
-	if(g_drawWireframe)
+	if (g_drawWireframe)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
