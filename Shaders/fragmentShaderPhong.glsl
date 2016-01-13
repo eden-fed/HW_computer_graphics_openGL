@@ -13,15 +13,15 @@ uniform vec4 AmbientProduct;
 uniform vec4 eyePosition;
 
 //light number 1
-uniform vec4 light1_position;
-uniform vec4 light1_direction;
+uniform vec4 light1_position;//
+uniform vec4 light1_direction;//
 uniform vec4 light1_intensity;
-uniform bool light1_isDirectional;
+uniform bool light1_isDirectional;//
 //light number 2
-uniform vec4 light2_position;
-uniform vec4 light2_direction;
+uniform vec4 light2_position;//
+uniform vec4 light2_direction;//
 uniform vec4 light2_intensity;
-uniform bool light2_isDirectional;
+uniform bool light2_isDirectional;//
 
 //material attributes
 uniform double material_ambient;
