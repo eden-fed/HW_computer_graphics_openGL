@@ -1,4 +1,6 @@
 #include "Utils.h"
+#include "Vector4.h"
+#include "Matrix4x4.h"
 #include <windows.h>
 #include <assert.h>
 #include <iostream>
@@ -64,7 +66,29 @@ void createTranslationMatrix(float tx, float ty, float tz, float mat[16])
 	mat[3*4+3] = 1.0f;
 }
 
+void ConvertMat4x4ToArray(Matrix4x4& objMAt, float mat[16]) 
+{
+	//objMAt[R][C]
+	mat[0 * 4 + 0] = objMAt[0][0];
+	mat[0 * 4 + 1] = objMAt[1][0];
+	mat[0 * 4 + 2] = objMAt[2][0];
+	mat[0 * 4 + 3] = objMAt[3][0];
 
+	mat[1 * 4 + 0] = objMAt[0][1];
+	mat[1 * 4 + 1] = objMAt[1][1];
+	mat[1 * 4 + 2] = objMAt[2][1];
+	mat[1 * 4 + 3] = objMAt[3][1];
+
+	mat[2 * 4 + 0] = objMAt[0][2];
+	mat[2 * 4 + 1] = objMAt[1][2];
+	mat[2 * 4 + 2] = objMAt[2][2];
+	mat[2 * 4 + 3] = objMAt[3][2];
+
+	mat[3 * 4 + 0] = objMAt[0][3];
+	mat[3 * 4 + 1] = objMAt[1][3];
+	mat[3 * 4 + 2] = objMAt[2][3];
+	mat[3 * 4 + 3] = objMAt[3][3];
+}
 
 void createPerspectiveProjectionMatrix(float nearPlane, float farPlane, float right, float top, float mat[16])
 {
@@ -93,6 +117,63 @@ void createPerspectiveProjectionMatrix(float nearPlane, float farPlane, float ri
 	mat[3*4+1] = 0.0f;
 	mat[3*4+2] = -1.0f;
 	mat[3*4+3] = 0.0f;
+}
+
+void createOrthographicProjectionMatrix(float nearPlane, float farPlane, float right, float top, float mat[16])
+{
+	assert(nearPlane > 0.0f);
+	assert(farPlane > nearPlane);
+	assert(farPlane > nearPlane);
+	assert(right > 0.0f);
+	assert(top > 0.0f);
+
+	mat[0 * 4 + 0] = 0.1f / right;
+	mat[0 * 4 + 1] = 0.0f;
+	mat[0 * 4 + 2] = 0.0f;
+	mat[0 * 4 + 3] = 0.0f;
+
+	mat[1 * 4 + 0] = 0.0f;
+	mat[1 * 4 + 1] = 0.1f / top;
+	mat[1 * 4 + 2] = 0.0f;
+	mat[1 * 4 + 3] = 0.0f;
+
+	mat[2 * 4 + 0] = 0.0f;
+	mat[2 * 4 + 1] = 0.0f;
+	mat[2 * 4 + 2] = (-2.0f) / (farPlane - nearPlane);
+	mat[2 * 4 + 3] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+
+	mat[3 * 4 + 0] = 0.0f;
+	mat[3 * 4 + 1] = 0.0f;
+	mat[3 * 4 + 2] = 0.0f;
+	mat[3 * 4 + 3] = 1.0f;
+}
+
+void LookAt(Vector4& vEye, Vector4& vAt, Vector4& vUp, float mat[16])
+{
+	Vector4 zaxis = (vEye - vAt).normalize();
+	Vector4 xaxis = (vUp ^ zaxis).normalize();
+	Vector4 yaxis = (zaxis ^ xaxis).normalize();
+	//Vector4 yaxis = (xaxis ^ zaxis).normalize();
+
+	mat[0 * 4 + 0] = xaxis[0];
+	mat[0 * 4 + 1] = yaxis[0];
+	mat[0 * 4 + 2] = zaxis[0];
+	mat[0 * 4 + 3] = 0.0f;
+
+	mat[1 * 4 + 0] = xaxis[1];
+	mat[1 * 4 + 1] = yaxis[1];
+	mat[1 * 4 + 2] = zaxis[1];
+	mat[1 * 4 + 3] = 0.0f;
+
+	mat[2 * 4 + 0] = xaxis[2];
+	mat[2 * 4 + 1] = yaxis[2];
+	mat[2 * 4 + 2] = zaxis[2];
+	mat[2 * 4 + 3] = 0.0f;
+
+	mat[3 * 4 + 0] = 0.0f;
+	mat[3 * 4 + 1] = 0.0f;
+	mat[3 * 4 + 2] = 0.0f;
+	mat[3 * 4 + 3] = 1.0f;
 }
 
 

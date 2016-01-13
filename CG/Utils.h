@@ -2,7 +2,7 @@
 
 #include <Glew/include/gl/glew.h>
 #include <string>
-
+#include "Matrix4x4.h"
 
 //Macro to make code more readable
 #define BUFFER_OFFSET(offset)   ((GLvoid*) (offset))
@@ -46,7 +46,9 @@ struct Shader
 
 void ConvertQuaternionToMatrix(const float quat[4], float mat[16]);
 void createTranslationMatrix(float tx, float ty, float tz, float mat[16]);
+void ConvertMat4x4ToArray(Matrix4x4& objMAt, float mat[16]);
 void createPerspectiveProjectionMatrix(float nearPlane, float farPlane, float right, float top, float mat[16]);
+void createOrthographicProjectionMatrix(float nearPlane, float farPlane, float right, float top, float mat[16]);
 void displayMessage(const std::string& str);
 std::wstring getOpenFileName();
 GLuint initShader(std::string vertexShaderFileName, std::string fragmentShaderFileName);
