@@ -1,33 +1,46 @@
 #version 150 //compatible with OpenGL version 3.2
 
-in vec4 vPosition;
-in vec4 vNormal;
 
-//
-//
-uniform mat4 rotation;
-uniform mat4 translation;
-uniform mat4 projection;
-uniform float scale;
-//uniform bool space;//true=world space
+struct stLightProperties {
+bool isEnabled;
+bool isDirectional;
+vec3 position;
+vec3 direction;
+vec3 intensity;
+vec3 color;
+};
 
-out vec4 color;
+uniform mat4 MVPMatrix;
+uniform mat4 MVMatrix;
+uniform mat4 NormalMatrix;
+uniform stLightProperties Lights[2];         //array of cameras
+
+in mat4 VertexNormal;
+in vec4 VertexPosition;
+
+out vec4 P;
+out vec4 N;
+out vec4 L[2];
+out vec4 R[2];
 
 void main()
 {
-	//gl_Position is a vec4 built-in GLSL output variable that holds the transformed vertex position
-	gl_Position = vPosition;
+	N = normalize(NormalMatrix * VertexNormal);
+	P = MVMatrix * VertexPosition;
 
-	//uniform scaling - dividing the w coordinate is like multiplying the x, y, z coordinates
- 	gl_Position.w = gl_Position.w / scale;
+	for (int lNum = 0; lNum < 2; ++lNum) {
+			L[lNum]=vec4(0.0)
+			R[lNum]=vec4(0.0)
+			if (Lights[lNum].isEnabled){
+				if (Lights[lNum].isDirectional)
+					L[lNum] = Lights[lNum].position - Lights[lNum].direction;
+				else
+					L[lNum] = Lights[lNum].position - P;
 
-	//rotate then translate in world coordinates
-	//if(space)
-	gl_Position = gl_Position*rotation*translation;
-	//else gl_Position = gl_Position*translation*rotation;
-	
-	//projection
-	gl_Position = gl_Position*projection;
+				float NL = max( dot(L[lNum], N), 0.0 );
+				R[lNum] = (N * (NL * 2)) - L[lNum];
+			}
+	}
 
-	color = vColor;
+	gl_Position = MVPMatrix * VertexPosition;
 }
