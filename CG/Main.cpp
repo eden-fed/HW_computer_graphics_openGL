@@ -17,9 +17,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
+#define BUFSIZE MAX_PATH
 #define PI 3.14159265358979323846 
-
+TCHAR g_Buffer[BUFSIZE];
 
 
 float g_scale = 1.0f;
@@ -213,24 +213,15 @@ void initScene()
 	glBufferSubData(GL_ARRAY_BUFFER, numV*sizeof(point4), numV*sizeof(color4), &normals[0]);
 
 
-	char* buffer;
 
-	// Get the current working directory: 
-	if ((buffer = _getcwd(NULL, 0)) == NULL)
-		std::cout << "_getcwd error" << std::endl;
-	else
+	if (!SetCurrentDirectory(g_Buffer))
 	{
-		std::cout << buffer << " Length: " << strlen(buffer) << std::endl;
-		free(buffer);
+		printf("SetCurrentDirectory failed (%d)\n", GetLastError());
+		return;
 	}
-/*	const char* newDir = R"(C:\path\to\directory\)";
-		if (!SetCurrentDirectory(newDir)) {
-			std::cerr << "Error setting current directory: #" << GetLastError();
-		}
-	std::cout << "Set current directory to " << newDir << '\n';*/
 
 	//create, load, compile, attach vertex and fragment shader
-	g_programID = initShader("C:\\Users\\USER\\Documents\\src\\HW_computer_graphics_openGL\\Shaders\\vertexShader.glsl", "C:\\Users\\USER\\Documents\\src\\HW_computer_graphics_openGL\\Shaders\\fragmentShader.glsl");
+	g_programID = initShader("..\\Shaders\\vertexShader.glsl", "..\\Shaders\\fragmentShader.glsl");
 	//g_programIDG = initShader("..\\Shaders\\vertexShaderGouraud.glsl", "..\\Shaders\\fragmentShaderGouraud.glsl");
 	//g_programIDP = initShader("..\\Shaders\\vertexShaderPhong.glsl", "..\\Shaders\\fragmentShaderPhong.glsl");
 
@@ -262,6 +253,20 @@ void initScene()
 
 void TW_CALL loadOBJModel(void *data)
 {
+	//**********************************************************
+	DWORD dwRet;
+	dwRet = GetCurrentDirectory(BUFSIZE, g_Buffer);
+	if (dwRet == 0)
+	{
+		printf("GetCurrentDirectory failed (%d)\n", GetLastError());
+		return;
+	}
+	if (dwRet > BUFSIZE)
+	{
+		printf("Buffer too small; need %d characters\n", dwRet);
+		return;
+	}
+	//******************************************************
 	std::wstring str = getOpenFileName();
 
 	Wavefront_obj objScene;
