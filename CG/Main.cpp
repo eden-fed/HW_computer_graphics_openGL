@@ -52,6 +52,7 @@ bool g_projectionType = true;
 bool g_space = true;//initialize to world space
 double g_normals_size = 1;
 
+
 double g_ambient = 0.1;
 double g_diffuse = 0.6;
 double g_specular = 0.7;
@@ -63,8 +64,11 @@ double g_xLightDirection = 0.0;
 double g_yLightDirection = 0.0;
 double g_zLightDirection = -5;
 bool g_lightType = false;
-unsigned int g_lightIntensity = 0xffffff;
-unsigned int g_ambientLight = 0xffffff;
+//unsigned int g_lightIntensity = 0xffffff;
+float g_lightIntensity[4] = { 1, 0, 0 ,1 }; // red								 
+
+float g_ambientLight[4] = { 1, 0, 0 ,1 }; // red								 
+
 TwType shadingType;
 bool g_mesh = false;
 
@@ -77,7 +81,14 @@ GLuint g_programID = 0;
 GLuint g_programIDG = 0;
 GLuint g_programIDP = 0;
 
-Matrix4x4 translation_matrix;
+Matrix4x4 transformations_matrix;
+Matrix4x4 rotations_matrix;
+
+//stLightProperties light1;
+//stLightProperties light2;
+bool g_light1Enable=false;
+bool g_light2Enable=false;
+
 
 
 void TW_CALL loadOBJModel(void* clientData);
@@ -168,10 +179,13 @@ int main(int argc, char *argv[])
 	TwAddVarRW(bar, "y-direction", TW_TYPE_DOUBLE, &g_yLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
 	TwAddVarRW(bar, "z-direction", TW_TYPE_DOUBLE, &g_zLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
 	TwAddVarRW(bar, "point/directional", TW_TYPE_BOOLCPP, &g_lightType, "help='false=point, true=directional'  group='light'");
-	TwAddVarRW(bar, "light intensity", TW_TYPE_COLOR32, &g_lightIntensity, " coloralpha=true colormode=rgb group='light'");
-	TwAddButton(bar, "apply on light 1", &applyLight1, NULL, " help='apply scale' group='light' ");
-	TwAddButton(bar, "apply on light 2", &applyLight2, NULL, " help='apply scale' group='light' ");
-	TwAddVarRW(bar, "ambient light intensity", TW_TYPE_COLOR32, &g_ambientLight, "coloralpha=true colormode=rgb group='light' ");
+	//TwAddVarRW(bar, "light intensity", TW_TYPE_COLOR32, &g_lightIntensity, " coloralpha=true colormode=rgb group='light'");
+	TwAddVarRW(bar, "light intensity", TW_TYPE_COLOR4F, &g_lightIntensity, " colormode=rgb group='light'");
+
+	TwAddVarRW(bar, "on/off light 1", TW_TYPE_BOOLCPP, &g_light1Enable, "group='light'");
+	TwAddVarRW(bar, "on/off light 2", TW_TYPE_BOOLCPP, &g_light1Enable, "group='light'");
+
+	TwAddVarRW(bar, "ambient light intensity", TW_TYPE_COLOR4F, &g_ambientLight, " colormode=rgb group='light'");
 
 	shadingType = TwDefineEnum("ShadingType", NULL, 0);
 	//TwAddVarRW(bar, "shading type", shadingType, &g_shadingType, " enum='0 {FLAT}, 1 {GOURAUD}, 2 {PHONG}' group='shading'");
@@ -221,7 +235,7 @@ void initScene()
 	}
 
 	//create, load, compile, attach vertex and fragment shader
-	g_programID = initShader("..\\Shaders\\vertexShader.glsl", "..\\Shaders\\fragmentShader.glsl");
+	g_programID = initShader("..\\Shaders\\a_vertexShaderGouraud.glsl", "..\\Shaders\\a_fragmentShaderGouraud.glsl");
 	//g_programIDG = initShader("..\\Shaders\\vertexShaderGouraud.glsl", "..\\Shaders\\fragmentShaderGouraud.glsl");
 	//g_programIDP = initShader("..\\Shaders\\vertexShaderPhong.glsl", "..\\Shaders\\fragmentShaderPhong.glsl");
 
@@ -236,7 +250,7 @@ void initScene()
 		return;
 	}*/
 	//get the identifier of the attribute "vPosition" in the active gl program
-	GLint vPosition_id = glGetAttribLocation(g_programID, "vPosition");
+	GLint vPosition_id = glGetAttribLocation(g_programID, "VertexPosition");
 	//this enables the generic vertex attribute array such that the values in the generic vertex attribute array
 	//will be accessed and used for rendering when calls are made to vertex array commands such as glDrawArrays or glDrawElements.
 	glEnableVertexAttribArray(vPosition_id);
@@ -244,7 +258,7 @@ void initScene()
 	glVertexAttribPointer(vPosition_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
 
-	GLuint vNormal_id = glGetAttribLocation(g_programID, "vNormal");
+	GLuint vNormal_id = glGetAttribLocation(g_programID, "VertexNormal");
 	glEnableVertexAttribArray(vNormal_id);
 	//note that the pointer offset is not 0, indicating that the normal data in the vertex array buffer starts right after the geometry data.
 	glVertexAttribPointer(vNormal_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(numV*sizeof(point4)));
@@ -278,8 +292,8 @@ void TW_CALL loadOBJModel(void *data)
 		//store the values in Object, MeshModel...
 		//draw the object for the first time
 		model.setAll(objScene);
-	/*	transform.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the model matrix
-		axisTransform.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the model matrix
+		transformations_matrix.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the model matrix
+	/*	axisTransform.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the model matrix
 		box.setVertices(m);
 		sceneObject.setModel(m, transform);*/
 
@@ -295,24 +309,6 @@ void TW_CALL loadOBJModel(void *data)
 	//glutPostRedisplay();
 	initScene();
 }
-/*void TW_CALL applyTranslation(void* clientData) {
-	Matrix4x4 temp(1,0,0,g_translationX,0,1,0,g_translationY,0,0,1,g_translationZ,0,0,0,1);
-	if (g_space) {
-		translation_matrix *= temp;
-	}
-	else translation_matrix = temp*translation_matrix;
-
-	g_translationX = 0;
-	g_translationY = 0;
-	g_translationZ=0;
-}*/
-void TW_CALL applyLight1(void* clientData) {
-
-}
-void TW_CALL applyLight2(void* clientData) {
-
-}
-
 
 void initGraphics(int argc, char *argv[])
 {
@@ -352,7 +348,7 @@ void initGraphics(int argc, char *argv[])
 }
 
 
-
+/*
 void drawScene()
 {
 	if (g_programID == 0)
@@ -405,8 +401,162 @@ void drawScene()
 
 	glPopAttrib();
 }
+*/
+void transformation() {
+	if (g_scale != 1.0) {
+		Matrix4x4 mat(g_scale, 0, 0, 0, 0, g_scale, 0, 0, 0, 0, g_scale, 0, 0, 0, 0, 1);
+		if (g_space) {//world space
+			transformations_matrix *= mat;
+		}
+		else {//object space
+			transformations_matrix = mat*transformations_matrix;
+		}
+		g_scale = 1.0;
+	}
+	if (g_translationX != 0.0 || g_translationY != 0.0 || g_translationZ != 0.0) {
+		Matrix4x4 mat(1, 0, 0, g_translationX, 0, 1, 0, g_translationY, 0, 0, 1, g_translationZ,0 ,0 ,0, 1);
+		if (g_space) {//world space
+			transformations_matrix *= mat;
+		}
+		else {//object space
+			transformations_matrix = mat*transformations_matrix;
+		}
+		g_translationX = g_translationY = g_translationZ = 0;
+	}
+
+	if (g_quaternion[0] != 0.0f || g_quaternion[1] != 0.0f || g_quaternion[2] != 0.0f || g_quaternion[3] != 1.0f) {
+		GLfloat mat_rotation[16];
+		ConvertQuaternionToMatrix(g_quaternion, mat_rotation);
+		Matrix4x4 mat(mat_rotation);
+		if (g_space) {//world space
+			transformations_matrix *= mat;
+			rotations_matrix *= mat;
+		}
+		else {//object space
+			transformations_matrix = mat*transformations_matrix;
+			rotations_matrix = mat*rotations_matrix;
+
+		}
+
+	}
 
 
+}
+void applyLights() {
+
+	GLuint l1id = glGetUniformLocation(g_programID, "Light[0].isEnabled");
+	glUniform1i(l1id, g_light1Enable);
+
+	if (g_light1Enable) {
+
+		GLuint l1t = glGetUniformLocation(g_programID, "Light[0].isDirectional");
+		glUniform1i(l1t, g_lightType);
+
+		GLuint l1p = glGetUniformLocation(g_programID, "Light[0].position");
+		glUniform4f(l1p, g_xLightPosition, g_yLightPosition, g_zLightPosition,1);
+
+		GLuint l1d = glGetUniformLocation(g_programID, "Light[0].direction");
+		glUniform4f(l1d, g_xLightDirection, g_yLightDirection, g_zLightDirection, 1);
+
+		GLuint l1i = glGetUniformLocation(g_programID, "Light[0].intensity");
+		glUniform4f(l1i, g_lightIntensity[0], g_lightIntensity[1], g_lightIntensity[2], g_lightIntensity[3]);
+	}
+
+	GLuint l2id = glGetUniformLocation(g_programID, "Light[1].isEnabled");
+	glUniform1i(l2id, g_light2Enable);
+
+	if (g_light2Enable) {
+
+		GLuint l2t = glGetUniformLocation(g_programID, "Light[1].isDirectional");
+		glUniform1i(l2t, g_lightType);
+
+		GLuint l2p = glGetUniformLocation(g_programID, "Light[1].position");
+		glUniform4f(l2p, g_xLightPosition, g_yLightPosition, g_zLightPosition, 1);
+
+		GLuint l2d = glGetUniformLocation(g_programID, "Light[1].direction");
+		glUniform4f(l2d, g_xLightDirection, g_yLightDirection, g_zLightDirection, 1);
+
+		GLuint l2i = glGetUniformLocation(g_programID, "Light[1].intensity");
+		glUniform4f(l2i, g_lightIntensity[0], g_lightIntensity[1], g_lightIntensity[2], g_lightIntensity[3]);
+	}
+
+	GLuint amb = glGetUniformLocation(g_programID, "AmbientProduct");
+	glUniform4f(amb, g_ambientLight[0], g_ambientLight[1], g_ambientLight[2], g_ambientLight[3]);
+
+
+}
+void applyMaterial() {
+	GLuint ma = glGetUniformLocation(g_programID, "material.ambient");
+	glUniform1f(ma, g_ambient);
+
+	GLuint md = glGetUniformLocation(g_programID, "material.diffuse");
+	glUniform1f(md, g_diffuse);
+
+	GLuint ms = glGetUniformLocation(g_programID, "material.specular");
+	glUniform1f(ms, g_specular);
+
+	GLuint mse = glGetUniformLocation(g_programID, "material.specularExp");
+	glUniform1f(mse, g_specularExp);
+}
+void drawScene()
+{
+	if (g_programID == 0)
+	{
+		return;
+	}
+
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	transformation();
+
+	glUseProgram(g_programID);
+
+	Matrix4x4 MV(1, 0, 0, 0,
+				  0, 1, 0, 0,
+				  0, 0, 1, -5,
+				  0, 0, 0, 1);
+	MV = transformations_matrix*MV;
+
+
+	GLfloat mat_projection[16];
+	createPerspectiveProjectionMatrix(1.0f, 10.0f, 0.25f, 0.25f, mat_projection);
+
+	Matrix4x4 MVP = MV*mat_projection;
+
+
+	GLfloat MVMatrix[16];
+	ConvertMat4x4ToArray(MV, MVMatrix);
+	GLuint mat_MV_id = glGetUniformLocation(g_programID, "MVMatrix");
+	glUniformMatrix4fv(mat_MV_id, 1, false, MVMatrix); //glUniformMatrix4fv assumes that the matrix is given in column major order. i.e, the first four elements in "mat" array corresponds to the first column of the matrix
+
+	GLfloat MVPMatrix[16];
+	ConvertMat4x4ToArray(MVP, MVPMatrix);
+	GLuint mat_MVP_id = glGetUniformLocation(g_programID, "MVPMatrix");
+	glUniformMatrix4fv(mat_MVP_id, 1, false, MVPMatrix);
+
+	GLfloat NormalMatrix[16];
+	ConvertMat4x4ToArray(rotations_matrix, NormalMatrix);
+	GLuint mat_NM_id = glGetUniformLocation(g_programID, "NormalMatrix");
+	glUniformMatrix4fv(mat_NM_id, 1, false, NormalMatrix);
+
+	applyLights();
+
+	if (g_drawWireframe)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	//this will invoke the rendering of the model.
+	//GL_TRIANGLES means that each three consecutive vertices in the array are connected and treated as a single triangle.
+	//this means that vertices in our meshes have to be duplicated. to avoid duplication and render triangles with additional indices information, one can use glDrawElements
+	glDrawArrays(GL_TRIANGLES, 0, numV);
+
+	glPopAttrib();
+}
 
 //callback function called by GLUT to render screen
 void Display()
