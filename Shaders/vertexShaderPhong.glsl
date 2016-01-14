@@ -7,7 +7,6 @@ bool isDirectional;
 vec4 position;
 vec4 direction;
 vec4 intensity;
-vec4 color;
 };
 
 uniform mat4 MVPMatrix;

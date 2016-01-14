@@ -6,7 +6,6 @@ bool isDirectional;
 vec3 position;
 vec3 direction;
 vec3 intensity;
-vec3 color;
 };
 
 struct stMaterialProperties {
