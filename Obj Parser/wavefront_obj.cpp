@@ -21,21 +21,21 @@ bool Wavefront_obj::load_file(std::wstring filename)
 
 		//vertex position
 		if (!strncmp(line, "v ", 2)) {
-			Vector v;
+			Vector4 v;
 			sscanf_s(line+2, "%lf %lf %lf", &v[0], &v[1], &v[2]);
 			m_points.push_back(v);	    
 		}
 
 		//texture coordinates
 		if (!strncmp(line, "vt ", 2)) {
-			Vector v;
+			Vector4 v;
 			sscanf_s(line+2, "%lf %lf %lf", &v[0], &v[1], &v[2]);
 			m_textureCoordinates.push_back(v);	    
 		}
 
 		//normal vector
 		if (!strncmp(line, "vn ", 2)) {
-			Vector n;
+			Vector4 n;
 			sscanf_s(line+2, "%lf %lf %lf", &n[0], &n[1], &n[2]);
 			m_normals.push_back(n);	    
 		}

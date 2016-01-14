@@ -9,8 +9,14 @@
 #include <Windows.h>
 #include <assert.h>
 
-
+#include "Obj Parser/wavefront_obj.h"
 #include "Utils.h"
+#include "MeshModel.h"
+
+#include <direct.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 
 #define PI 3.14159265358979323846 
 
@@ -31,9 +37,9 @@ double g_near = 0.01;
 double g_far = 10000;
 double g_fovy = 60;
 
-double g_translationX = 0.0;
-double g_translationY = 0.0;
-double g_translationZ = 0.0;
+float g_translationX = 0.0;
+float g_translationY = 0.0;
+float g_translationZ = 0.0;
 
 
 //global veriables for glut functions
@@ -43,7 +49,7 @@ bool g_showCrdSystem = false;
 bool g_normals = false;
 bool g_bbox = false;
 bool g_projectionType = true;
-bool g_space = false;//initialize to object space
+bool g_space = true;//initialize to world space
 double g_normals_size = 1;
 
 double g_ambient = 0.1;
@@ -62,13 +68,16 @@ unsigned int g_ambientLight = 0xffffff;
 TwType shadingType;
 bool g_mesh = false;
 
-
+MeshModel model;
+int numV;//number of vertices
 
 GLuint g_vertexArrayID = 0;
 GLuint g_vertexBufferObjectID = 0;
 GLuint g_programID = 0;
+GLuint g_programIDG = 0;
+GLuint g_programIDP = 0;
 
-
+Matrix4x4 translation_matrix;
 
 
 void TW_CALL loadOBJModel(void* clientData);
@@ -109,7 +118,7 @@ int main(int argc, char *argv[])
 	glutKeyboardFunc(Keyboard);
 	glutSpecialFunc(Special);
 
-	initScene();
+	//initScene();
 
 	atexit(Terminate);  // Called after glutMainLoop ends
 
@@ -123,7 +132,7 @@ int main(int argc, char *argv[])
 	TwAddSeparator(bar, NULL, NULL);
 
 	TwAddVarRW(bar, "reset", TW_TYPE_BOOLCPP, &g_reset, "help='reset everything'");
-	TwAddVarRW(bar, "OW space", TW_TYPE_BOOLCPP, &g_space, " help='true=transforma in world space ,false=transform in object space' ");
+	TwAddVarRW(bar, "OW space", TW_TYPE_BOOLCPP, &g_space, " help='true=transform in world space ,false=transform in object space' ");
 	TwAddVarRW(bar, "OW Crd System", TW_TYPE_BOOLCPP, &g_showCrdSystem, " help='boolean variable to indicate if to show WO coordinate system or not.' ");
 	TwAddVarRW(bar, "showBbox", TW_TYPE_BOOLCPP, &g_bbox, " help='boolean variable to indicate if to show the bbox or not.' ");
 
@@ -136,16 +145,16 @@ int main(int argc, char *argv[])
 
 	TwAddVarRW(bar, "centerCamera", TW_TYPE_BOOLCPP, &g_centerCam, "help='point the camera to the center of the model'  group='camera'");
 
-	TwAddVarRW(bar, "translate X", TW_TYPE_DOUBLE, &g_translationX, "min=-30 max=30 step=1 keyIncr=right keyDecr=left   group='tranfromations' ");
-	TwAddVarRW(bar, "translate Y", TW_TYPE_DOUBLE, &g_translationY, "min=-30 max=30 step=1 keyIncr=up keyDecr=down   group='tranfromations' ");
-	TwAddVarRW(bar, "translate Z", TW_TYPE_DOUBLE, &g_translationZ, "min=-30 max=30 step=1 keyIncr=> keyDecr=<   group='tranfromations' ");
-	TwAddButton(bar, "apply translation", applyTranslation, NULL, "help='apply translation' group='tranfromations' ");
+	TwAddVarRW(bar, "translate X", TW_TYPE_FLOAT, &g_translationX, "min=-30 max=30 step=1 keyIncr=right keyDecr=left   group='tranfromations' ");
+	TwAddVarRW(bar, "translate Y", TW_TYPE_FLOAT, &g_translationY, "min=-30 max=30 step=1 keyIncr=up keyDecr=down   group='tranfromations' ");
+	TwAddVarRW(bar, "translate Z", TW_TYPE_FLOAT, &g_translationZ, "min=-30 max=30 step=1 keyIncr=> keyDecr=<   group='tranfromations' ");
+	//TwAddButton(bar, "apply translation", applyTranslation, NULL, "help='apply translation' group='tranfromations' ");
 
 	//add 'g_Zoom' to 'bar': this is a modifiable (RW) variable of type TW_TYPE_FLOAT. Its key shortcuts are [z] and [Z].
 	TwAddVarRW(bar, "Scale", TW_TYPE_FLOAT, &g_scale, " label='Scale' min=-10.0 max=10.0 step=0.01 group=tranfromations ");
 
 	//add 'g_quaternion' to 'bar': this is a variable of type TW_TYPE_QUAT4D which defines the object's orientation using quaternions
-	TwAddVarRW(bar, "Rotation", TW_TYPE_QUAT4F, &g_quaternion, " label='Object rotation' opened=true help='This is object rotation' ");
+	TwAddVarRW(bar, "Rotation", TW_TYPE_QUAT4F, &g_quaternion, " label='Object rotation' opened=true help='This is object rotation' group=tranfromations ");
 
 	TwAddVarRW(bar, "ambient", TW_TYPE_DOUBLE, &g_ambient, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
 	TwAddVarRW(bar, "diffuse", TW_TYPE_DOUBLE, &g_diffuse, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
@@ -178,10 +187,10 @@ int main(int argc, char *argv[])
 
 void initScene()
 {
-	point4 positions[36];
-	color4 colors[36];
-	createCube(positions, colors);
 
+	std::vector<point4>  positions;
+	std::vector<point4>  normals;
+	model.getAllVerticesOfInTriangles(positions, normals);
 
 	//create a vertex array object
 	glGenVertexArrays(1, &g_vertexArrayID);
@@ -192,25 +201,49 @@ void initScene()
 	glGenBuffers(1, &g_vertexBufferObjectID);
 	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObjectID);
 
-	int numV = 36;
+	numV = positions.size();
 
 	//this will allocate memory for the buffer object on the GPU
-	glBufferData(GL_ARRAY_BUFFER, numV*(sizeof(point4) + sizeof(color4)), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, numV*2*sizeof(point4), NULL, GL_STATIC_DRAW);
+
 	//this will copy the data from CPU memory to GPU memory
 	//glBufferSubData redefines the data store for the buffer object currently bound to target
 	glBufferSubData(GL_ARRAY_BUFFER, 0, numV*sizeof(point4), &positions[0]);
 	//the colors are appended to the buffer right after the positions
-	glBufferSubData(GL_ARRAY_BUFFER, numV*sizeof(point4), numV*sizeof(color4), &colors[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, numV*sizeof(point4), numV*sizeof(color4), &normals[0]);
 
+
+	char* buffer;
+
+	// Get the current working directory: 
+	if ((buffer = _getcwd(NULL, 0)) == NULL)
+		std::cout << "_getcwd error" << std::endl;
+	else
+	{
+		std::cout << buffer << " Length: " << strlen(buffer) << std::endl;
+		free(buffer);
+	}
+/*	const char* newDir = R"(C:\path\to\directory\)";
+		if (!SetCurrentDirectory(newDir)) {
+			std::cerr << "Error setting current directory: #" << GetLastError();
+		}
+	std::cout << "Set current directory to " << newDir << '\n';*/
 
 	//create, load, compile, attach vertex and fragment shader
-	g_programID = initShader("..\\Shaders\\vertexShader.glsl", "..\\Shaders\\fragmentShader.glsl");
+	g_programID = initShader("C:\\Users\\USER\\Documents\\src\\HW_computer_graphics_openGL\\Shaders\\vertexShader.glsl", "C:\\Users\\USER\\Documents\\src\\HW_computer_graphics_openGL\\Shaders\\fragmentShader.glsl");
+	//g_programIDG = initShader("..\\Shaders\\vertexShaderGouraud.glsl", "..\\Shaders\\fragmentShaderGouraud.glsl");
+	//g_programIDP = initShader("..\\Shaders\\vertexShaderPhong.glsl", "..\\Shaders\\fragmentShaderPhong.glsl");
+
 	if (!g_programID)
 	{
 		std::cout << "\nFatal Error in shader creation!\n\a\a\a";
 		return;
 	}
-
+	/*if (!g_programIDP)
+	{
+		std::cout << "\nFatal Error in shader creation!\n\a\a\a";
+		return;
+	}*/
 	//get the identifier of the attribute "vPosition" in the active gl program
 	GLint vPosition_id = glGetAttribLocation(g_programID, "vPosition");
 	//this enables the generic vertex attribute array such that the values in the generic vertex attribute array
@@ -220,22 +253,54 @@ void initScene()
 	glVertexAttribPointer(vPosition_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
 
-	GLuint vColor_id = glGetAttribLocation(g_programID, "vColor");
-	glEnableVertexAttribArray(vColor_id);
-	//note that the pointer offset is not 0, indicating that the color data in the vertex array buffer starts right after the geometry data.
-	glVertexAttribPointer(vColor_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(numV*sizeof(point4)));
+	GLuint vNormal_id = glGetAttribLocation(g_programID, "vNormal");
+	glEnableVertexAttribArray(vNormal_id);
+	//note that the pointer offset is not 0, indicating that the normal data in the vertex array buffer starts right after the geometry data.
+	glVertexAttribPointer(vNormal_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(numV*sizeof(point4)));
 }
 
 
-
-void TW_CALL loadOBJModel(void* clientData)
+void TW_CALL loadOBJModel(void *data)
 {
 	std::wstring str = getOpenFileName();
-	std::wcout << str << "\n";
-}
-void TW_CALL applyTranslation(void* clientData) {
 
+	Wavefront_obj objScene;
+	bool result = objScene.load_file(str);
+
+	if (result)
+	{
+		std::cout << "The obj file was loaded successfully" << std::endl;
+		//store the values in Object, MeshModel...
+		//draw the object for the first time
+		model.setAll(objScene);
+	/*	transform.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the model matrix
+		axisTransform.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the model matrix
+		box.setVertices(m);
+		sceneObject.setModel(m, transform);*/
+
+	}
+	else
+	{
+		std::cerr << "Failed to load obj file" << std::endl;
+	}
+
+	std::cout << "The number of vertices in the model is: " << objScene.m_points.size() << std::endl;
+	std::cout << "The number of triangles in the model is: " << objScene.m_faces.size() << std::endl;
+	//clear = false;
+	//glutPostRedisplay();
+	initScene();
 }
+/*void TW_CALL applyTranslation(void* clientData) {
+	Matrix4x4 temp(1,0,0,g_translationX,0,1,0,g_translationY,0,0,1,g_translationZ,0,0,0,1);
+	if (g_space) {
+		translation_matrix *= temp;
+	}
+	else translation_matrix = temp*translation_matrix;
+
+	g_translationX = 0;
+	g_translationY = 0;
+	g_translationZ=0;
+}*/
 void TW_CALL applyLight1(void* clientData) {
 
 }
@@ -259,7 +324,7 @@ void initGraphics(int argc, char *argv[])
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); //use a framebuffer with double buffering and RGBA format. Use a z-buffer
 
-	glutInitWindowSize(800, 800);
+	glutInitWindowSize(g_Swidth, g_Sheight);
 	glutCreateWindow("Computer Graphics Skeleton using: OpenGL, AntTweakBar, freeGLUT, glew");
 	glutCreateMenu(NULL);
 
@@ -301,7 +366,8 @@ void drawScene()
 	glUniformMatrix4fv(mat_rotation_id, 1, false, mat_rotation); //glUniformMatrix4fv assumes that the matrix is given in column major order. i.e, the first four elements in "mat" array corresponds to the first column of the matrix
 
 	GLfloat mat_translation[16];
-	createTranslationMatrix(0.0f, 0.0f, -5.0f, mat_translation);
+	//createTranslationMatrix(translation_matrix[0][3], translation_matrix[1][3], translation_matrix[2][3] , mat_translation);
+	createTranslationMatrix(g_translationX, g_translationY, g_translationZ-5.0f, mat_translation);
 
 	GLuint mat_translation_id = glGetUniformLocation(g_programID, "translation");
 	glUniformMatrix4fv(mat_translation_id, 1, false, mat_translation);
@@ -315,6 +381,9 @@ void drawScene()
 	GLuint scale_id = glGetUniformLocation(g_programID, "scale");
 	glUniform1f(scale_id, g_scale);
 
+	//GLuint space_id = glGetUniformLocation(g_programID, "space");
+	//glUniform1i(space_id, g_space);
+
 	if (g_drawWireframe)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -327,7 +396,7 @@ void drawScene()
 	//this will invoke the rendering of the model.
 	//GL_TRIANGLES means that each three consecutive vertices in the array are connected and treated as a single triangle.
 	//this means that vertices in our meshes have to be duplicated. to avoid duplication and render triangles with additional indices information, one can use glDrawElements
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDrawArrays(GL_TRIANGLES, 0, numV);
 
 	glPopAttrib();
 }
