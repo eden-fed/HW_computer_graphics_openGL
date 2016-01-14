@@ -12,6 +12,7 @@
 #include "Obj Parser/wavefront_obj.h"
 #include "Utils.h"
 #include "MeshModel.h"
+#include "Camera.h"
 
 #include <direct.h>
 #include <stdlib.h>
@@ -83,6 +84,10 @@ GLuint g_programIDP = 0;
 
 Matrix4x4 transformations_matrix;
 Matrix4x4 rotations_matrix;
+Matrix4x4 saveCamera(1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1);
 
 //stLightProperties light1;
 //stLightProperties light2;
@@ -183,7 +188,7 @@ int main(int argc, char *argv[])
 	TwAddVarRW(bar, "light intensity", TW_TYPE_COLOR4F, &g_lightIntensity, " colormode=rgb group='light'");
 
 	TwAddVarRW(bar, "on/off light 1", TW_TYPE_BOOLCPP, &g_light1Enable, "group='light'");
-	TwAddVarRW(bar, "on/off light 2", TW_TYPE_BOOLCPP, &g_light1Enable, "group='light'");
+	TwAddVarRW(bar, "on/off light 2", TW_TYPE_BOOLCPP, &g_light2Enable, "group='light'");
 
 	TwAddVarRW(bar, "ambient light intensity", TW_TYPE_COLOR4F, &g_ambientLight, " colormode=rgb group='light'");
 
@@ -244,11 +249,7 @@ void initScene()
 		std::cout << "\nFatal Error in shader creation!\n\a\a\a";
 		return;
 	}
-	/*if (!g_programIDP)
-	{
-		std::cout << "\nFatal Error in shader creation!\n\a\a\a";
-		return;
-	}*/
+
 	//get the identifier of the attribute "vPosition" in the active gl program
 	GLint vPosition_id = glGetAttribLocation(g_programID, "VertexPosition");
 	//this enables the generic vertex attribute array such that the values in the generic vertex attribute array
@@ -293,10 +294,6 @@ void TW_CALL loadOBJModel(void *data)
 		//draw the object for the first time
 		model.setAll(objScene);
 		transformations_matrix.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the model matrix
-	/*	axisTransform.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the model matrix
-		box.setVertices(m);
-		sceneObject.setModel(m, transform);*/
-
 	}
 	else
 	{
@@ -320,8 +317,6 @@ void initGraphics(int argc, char *argv[])
 
 	//glutInitContextVersion(2, 0);
 	//glutInitContextVersion(3, 0);
-
-
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); //use a framebuffer with double buffering and RGBA format. Use a z-buffer
 
@@ -517,11 +512,22 @@ void drawScene()
 				  0, 0, 0, 1);
 	MV = transformations_matrix*MV;
 
+	Camera cam({ 0, 0, 0, 1 }, (model.getCentroid())*MV, { 0,1,0,1 });
+	//pointing camera at object
+	if (g_centerCam) {
+		saveCamera.setAllValues(1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1);
+		saveCamera *= cam.getViewMtrx();
+		g_centerCam = false;
+	}
+	MV *= saveCamera;
 
-	GLfloat mat_projection[16];
-	createPerspectiveProjectionMatrix(1.0f, 10.0f, 0.25f, 0.25f, mat_projection);
+	cam.setProjectionMatrix(g_fovy, g_near, g_far, (eProjectionType)g_projectionType, 1);
+	Matrix4x4 projectionMtrx(cam.getProjectionMtrx());
 
-	Matrix4x4 MVP = MV*mat_projection;
+	Matrix4x4 MVP = MV*projectionMtrx;
 
 
 	GLfloat MVMatrix[16];
@@ -540,6 +546,7 @@ void drawScene()
 	glUniformMatrix4fv(mat_NM_id, 1, false, NormalMatrix);
 
 	applyLights();
+	applyMaterial();
 
 	if (g_drawWireframe)
 	{
