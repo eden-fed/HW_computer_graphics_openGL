@@ -27,7 +27,8 @@ out vec2 texCoord;
 
 void main()
 {
-	N = normalize(NormalMatrix * VertexNormal);
+	N=vec4(0.0,0.0,0.0,1.0);
+	N.xyz = normalize(vec3(NormalMatrix * VertexNormal));
 	P = MVMatrix * VertexPosition;
 
 	for (int lNum = 0; lNum < 2; ++lNum) {

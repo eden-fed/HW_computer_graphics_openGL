@@ -24,12 +24,13 @@ out vec4 R[2];
 
 void main()
 {
-	N = normalize(NormalMatrix * VertexNormal);
+	N=vec4(0.0,0.0,0.0,1.0);
+	N.xyz = normalize(vec3(NormalMatrix * VertexNormal));
 	P = MVMatrix * VertexPosition;
 
 	for (int lNum = 0; lNum < 2; ++lNum) {
-			L[lNum]=vec4(0.0)
-			R[lNum]=vec4(0.0)
+			L[lNum]=vec4(0.0);
+			R[lNum]=vec4(0.0);
 			if (Lights[lNum].isEnabled){
 				if (Lights[lNum].isDirectional)
 					L[lNum] = Lights[lNum].position - Lights[lNum].direction;
