@@ -1,9 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This simple obj parser assumes  that all polygons in the mesh are triangles and will fail otherwise //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+#ifndef WAVEFRONT_OBJ_H
+#define WAVEFRONT_OBJ_H
 #include <vector>
-
+#include "CG\Vector4.h"
+#include "CG\Triangle.h"
 
 struct Wavefront_obj
 {
@@ -16,7 +18,7 @@ struct Wavefront_obj
 		int n[3];
 	};
 
-	struct Vector
+	/*struct Vector
 	{
 		Vector() {e[0] = 0.0; e[1] = 0.0; e[2] = 0.0;}
 
@@ -24,15 +26,15 @@ struct Wavefront_obj
 
 		inline double& operator[](int index) { return e[index]; }
 		inline const double& operator[](int index) const { return e[index]; }
-	};
+	};*/
 
-	std::vector<Vector> m_points;
-	std::vector<Vector> m_normals;
-	std::vector<Vector> m_textureCoordinates;
+	std::vector<Vector4> m_points;
+	std::vector<Vector4> m_normals;
+	std::vector<Vector4> m_textureCoordinates;
 	std::vector<Face> m_faces;
 
 	bool load_file(std::wstring filename);
 
 };
-
+#endif
 
