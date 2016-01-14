@@ -36,21 +36,22 @@ out vec4 outFragColor;
 void main()
 {
 	vec4 color;
+	vec4 eyePosition=vec4(0.0,0.0,0.0,1.0);
 
-	L[1] = normalize(L[1]);
-	L[2] = normalize(L[2]);
-	R[1] = normalize(R[1]);
-	R[2] = normalize(R[2]);
+	L[0].xyz = normalize(vec3(L[0]));
+	L[1].xyz = normalize(vec3(L[1]));
+	R[0].xyz = normalize(vec3(R[0]));
+	R[1].xyz = normalize(vec3(R[1]));
 
 	//calculate ambiant lighting
 	vec4 ambient = material.ambient * AmbientProduct;
 
 	//init vectors
-	vec4 diffuse  = vec4(0.0,0.0,0.0);
-	vec4 specular = vec4(0.0,0.0,0.0) ;
+	vec4 diffuse  = vec4(0.0,0.0,0.0,1.0);
+	vec4 specular = vec4(0.0,0.0,0.0,1.0) ;
 	
 
-	vec4 V = normalize(eyePosition - P);					
+	vec4 V.xyz = normalize(vec3(eyePosition - P));					
 	for (int lNum = 0; lNum < 2; ++lNum) {
 		if (Lights[lNum].isEnabled){
 					//calculate diffuse lighting
