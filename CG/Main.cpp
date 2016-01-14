@@ -476,7 +476,9 @@ void applyLights() {
 	}
 
 	GLuint amb = glGetUniformLocation(g_programID, "AmbientProduct");
-	glUniform4f(amb, g_ambientLight[0], g_ambientLight[1], g_ambientLight[2], g_ambientLight[3]);
+	//glUniform4f(amb, g_ambientLight[0], g_ambientLight[1], g_ambientLight[2], g_ambientLight[3]);
+	glUniform4f(amb,1,0,0, 1);
+
 
 
 }
@@ -530,18 +532,21 @@ void drawScene()
 	Matrix4x4 MVP = MV*projectionMtrx;
 
 
-	GLfloat MVMatrix[16];
-	ConvertMat4x4ToArray(MV, MVMatrix);
+	//GLfloat MVMatrix[16];
+	//ConvertMat4x4ToArray(MV, MVMatrix);
+	GLfloat MVMatrix[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 	GLuint mat_MV_id = glGetUniformLocation(g_programID, "MVMatrix");
 	glUniformMatrix4fv(mat_MV_id, 1, false, MVMatrix); //glUniformMatrix4fv assumes that the matrix is given in column major order. i.e, the first four elements in "mat" array corresponds to the first column of the matrix
 
 	GLfloat MVPMatrix[16];
 	ConvertMat4x4ToArray(MVP, MVPMatrix);
+	//GLfloat MVPMatrix[16] = { 0.1,0,0,0,0,0.1,0,0,0,0,0.1,0,0,0,0,1 };
 	GLuint mat_MVP_id = glGetUniformLocation(g_programID, "MVPMatrix");
 	glUniformMatrix4fv(mat_MVP_id, 1, false, MVPMatrix);
 
-	GLfloat NormalMatrix[16];
-	ConvertMat4x4ToArray(rotations_matrix, NormalMatrix);
+	//GLfloat NormalMatrix[16];
+	//ConvertMat4x4ToArray(rotations_matrix, NormalMatrix);
+	GLfloat NormalMatrix[16] = { 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
 	GLuint mat_NM_id = glGetUniformLocation(g_programID, "NormalMatrix");
 	glUniformMatrix4fv(mat_NM_id, 1, false, NormalMatrix);
 

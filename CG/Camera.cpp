@@ -128,7 +128,7 @@ void Camera::setProjectionMatrix(double flFovy = 60, double flNear = 0.01, doubl
 									0, 0, (2 / (flNear - flFar)), ((flFar + flNear) / (flNear - flFar)),
 									0, 0, 0, 1);
 									*/
-		matTest.setAllValues(0.3, 0, 0, 0, 0, 0.3, 0, 0, 0, 0, 0.3, 0, 0, 0, 0, 1);
+		matTest.setAllValues(0.0006, 0, 0, 0, 0, 0.0006, 0, 0, 0, 0, 0.0006, 0, 0, 0, 0, 1);
 		projectionMtrx = projectionMtrx * matTest;
 		break;
 	}
