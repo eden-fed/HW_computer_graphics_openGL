@@ -19,6 +19,8 @@ uniform mat4 MVMatrix;
 uniform mat4 NormalMatrix;
 uniform stLightProperties Lights[2];         //array of cameras
 uniform stMaterialProperties material;       //material attributes
+uniform vec4 AmbientProduct;  
+
 
 in mat4 VertexNormal;
 in vec4 VertexPosition;
