@@ -4,10 +4,10 @@
 struct stLightProperties {
 bool isEnabled;
 bool isDirectional;
-vec3 position;
-vec3 direction;
-vec3 intensity;
-vec3 color;
+vec4 position;
+vec4 direction;
+vec4 intensity;
+vec4 color;
 };
 
 uniform mat4 MVPMatrix;
