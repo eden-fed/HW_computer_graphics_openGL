@@ -129,7 +129,7 @@ const Matrix4x4 Matrix4x4::transpose()
 	Matrix4x4 ret;
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
-			ret[i][j] = *this[j][i];
+			ret[i][j] = v1[j][i];
 		}
 	}
 	return ret;
