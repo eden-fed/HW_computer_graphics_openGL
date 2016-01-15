@@ -70,23 +70,23 @@ void ConvertMat4x4ToArray(Matrix4x4& objMAt, float mat[16])
 {
 	//objMAt[R][C]
 	mat[0 * 4 + 0] = objMAt[0][0];
-	mat[0 * 4 + 1] = objMAt[1][0];
-	mat[0 * 4 + 2] = objMAt[2][0];
-	mat[0 * 4 + 3] = objMAt[3][0];
+	mat[0 * 4 + 1] = objMAt[0][1];
+	mat[0 * 4 + 2] = objMAt[0][2];
+	mat[0 * 4 + 3] = objMAt[0][3];
 
-	mat[1 * 4 + 0] = objMAt[0][1];
+	mat[1 * 4 + 0] = objMAt[1][0];
 	mat[1 * 4 + 1] = objMAt[1][1];
-	mat[1 * 4 + 2] = objMAt[2][1];
-	mat[1 * 4 + 3] = objMAt[3][1];
+	mat[1 * 4 + 2] = objMAt[1][2];
+	mat[1 * 4 + 3] = objMAt[1][3];
 
-	mat[2 * 4 + 0] = objMAt[0][2];
-	mat[2 * 4 + 1] = objMAt[1][2];
+	mat[2 * 4 + 0] = objMAt[2][0];
+	mat[2 * 4 + 1] = objMAt[2][1];
 	mat[2 * 4 + 2] = objMAt[2][2];
-	mat[2 * 4 + 3] = objMAt[3][2];
+	mat[2 * 4 + 3] = objMAt[2][3];
 
-	mat[3 * 4 + 0] = objMAt[0][3];
-	mat[3 * 4 + 1] = objMAt[1][3];
-	mat[3 * 4 + 2] = objMAt[2][3];
+	mat[3 * 4 + 0] = objMAt[3][0];
+	mat[3 * 4 + 1] = objMAt[3][1];
+	mat[3 * 4 + 2] = objMAt[3][2];
 	mat[3 * 4 + 3] = objMAt[3][3];
 }
 
@@ -148,7 +148,7 @@ void createOrthographicProjectionMatrix(float nearPlane, float farPlane, float r
 	mat[3 * 4 + 3] = 1.0f;
 }
 
-void LookAt(Vector4& vEye, Vector4& vAt, Vector4& vUp, float mat[16])
+/*void LookAt(Vector4& vEye, Vector4& vAt, Vector4& vUp, float mat[16])
 {
 	Vector4 zaxis = (vEye - vAt).normalize();
 	Vector4 xaxis = (vUp ^ zaxis).normalize();
@@ -174,7 +174,7 @@ void LookAt(Vector4& vEye, Vector4& vAt, Vector4& vUp, float mat[16])
 	mat[3 * 4 + 1] = 0.0f;
 	mat[3 * 4 + 2] = 0.0f;
 	mat[3 * 4 + 3] = 1.0f;
-}
+}*/
 
 
 void displayMessage(const std::string& str)

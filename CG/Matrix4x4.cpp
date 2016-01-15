@@ -33,10 +33,10 @@ Matrix4x4::Matrix4x4(const Matrix4x4 & m)
 
 Matrix4x4::Matrix4x4(float mat[16])
 {
-	setColumn(mat[0 * 4 + 0], mat[0 * 4 + 1], mat[0 * 4 + 2], mat[0 * 4 + 3], 0);
-	setColumn(mat[1 * 4 + 0], mat[1 * 4 + 1], mat[1 * 4 + 2], mat[1 * 4 + 3], 1);
-	setColumn(mat[2 * 4 + 0], mat[2 * 4 + 1], mat[2 * 4 + 2], mat[2 * 4 + 3], 2);
-	setColumn(mat[3 * 4 + 0], mat[3 * 4 + 1], mat[3 * 4 + 2], mat[3 * 4 + 3], 3);
+	setRow(mat[0 * 4 + 0], mat[0 * 4 + 1], mat[0 * 4 + 2], mat[0 * 4 + 3], 0);
+	setRow(mat[1 * 4 + 0], mat[1 * 4 + 1], mat[1 * 4 + 2], mat[1 * 4 + 3], 1);
+	setRow(mat[2 * 4 + 0], mat[2 * 4 + 1], mat[2 * 4 + 2], mat[2 * 4 + 3], 2);
+	setRow(mat[3 * 4 + 0], mat[3 * 4 + 1], mat[3 * 4 + 2], mat[3 * 4 + 3], 3);
 }
 
 void Matrix4x4::setRow(double x, double y, double z, double w, unsigned int rowNum)
