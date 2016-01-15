@@ -77,17 +77,17 @@ void Camera::setViewMtrx(Vector4& vEye, Vector4& vAt, Vector4& vUp)
 	Vector4 yaxis = (zaxis ^ xaxis).normalize();
 	//Vector4 yaxis = (xaxis ^ zaxis).normalize();
 
-	//viewMtrx.setColumn(xaxis[0], xaxis[1], xaxis[2], 0, 0);
-	viewMtrx.setRow(xaxis[0], xaxis[1], xaxis[2], 0, 0);
+	viewMtrx.setColumn(xaxis[0], xaxis[1], xaxis[2], 0, 0);
+	//viewMtrx.setRow(xaxis[0], xaxis[1], xaxis[2], 0, 0);
 
-	//viewMtrx.setColumn(yaxis[0], yaxis[1], yaxis[2], 0, 1);
-	viewMtrx.setRow(yaxis[0], yaxis[1], yaxis[2], 0, 1);
+	viewMtrx.setColumn(yaxis[0], yaxis[1], yaxis[2], 0, 1);
+	//viewMtrx.setRow(yaxis[0], yaxis[1], yaxis[2], 0, 1);
 
-	//viewMtrx.setColumn(zaxis[0], zaxis[1], zaxis[2], 0, 2);
-	viewMtrx.setRow(zaxis[0], zaxis[1], zaxis[2], 0, 2);
+	viewMtrx.setColumn(zaxis[0], zaxis[1], zaxis[2], 0, 2);
+	//viewMtrx.setRow(zaxis[0], zaxis[1], zaxis[2], 0, 2);
 
-	//viewMtrx.setColumn(0, 0, 0, 1, 3);
-	viewMtrx.setRow(0, 0, 0, 1, 3);
+	viewMtrx.setColumn(0, 0, 0, 1, 3);
+	//viewMtrx.setRow(0, 0, 0, 1, 3);
 
 
 	//viewMtrx.setRow((vEye[0]) - (vAt[0]), (vEye[1]) - (vAt[1]), (vEye[2]) - (vAt[2]), 1, 3);
@@ -132,7 +132,7 @@ void Camera::setProjectionMatrix(double flFovy = 60, double flNear = 0.01, doubl
 		projectionMtrx = projectionMtrx * matTest;
 		break;
 	}
-	projectionMtrx=projectionMtrx.transpose();
+	//projectionMtrx=projectionMtrx.transpose();
 }
 
 

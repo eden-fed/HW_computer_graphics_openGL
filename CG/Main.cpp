@@ -42,6 +42,9 @@ float g_translationX = 0.0;
 float g_translationY = 0.0;
 float g_translationZ = 0.0;
 
+double g_xRotation = 0.0;
+double g_yRotation = 0.0;
+double g_zRotation = 0.0;
 
 //global veriables for glut functions
 bool g_reset = false;
@@ -54,7 +57,7 @@ bool g_space = true;//initialize to world space
 double g_normals_size = 1;
 
 
-double g_ambient = 0.1;
+double g_ambient = 0.5;
 double g_diffuse = 0.6;
 double g_specular = 0.7;
 double g_specularExp = 32;
@@ -98,8 +101,14 @@ bool g_light2Enable=false;
 
 void TW_CALL loadOBJModel(void* clientData);
 void TW_CALL applyTranslation(void* clientData);
+void TW_CALL applyScale(void* clientData);
+void TW_CALL applyXrotation(void* clientData);
+void TW_CALL applyYrotation(void* clientData);
+void TW_CALL applyZrotation(void* clientData);
 void TW_CALL applyLight1(void* clientData);
 void TW_CALL applyLight2(void* clientData);
+
+
 void initScene();
 void initGraphics(int argc, char *argv[]);
 void drawScene();
@@ -161,16 +170,25 @@ int main(int argc, char *argv[])
 
 	TwAddVarRW(bar, "centerCamera", TW_TYPE_BOOLCPP, &g_centerCam, "help='point the camera to the center of the model'  group='camera'");
 
-	TwAddVarRW(bar, "translate X", TW_TYPE_FLOAT, &g_translationX, "min=-30 max=30 step=1 keyIncr=right keyDecr=left   group='tranfromations' ");
-	TwAddVarRW(bar, "translate Y", TW_TYPE_FLOAT, &g_translationY, "min=-30 max=30 step=1 keyIncr=up keyDecr=down   group='tranfromations' ");
-	TwAddVarRW(bar, "translate Z", TW_TYPE_FLOAT, &g_translationZ, "min=-30 max=30 step=1 keyIncr=> keyDecr=<   group='tranfromations' ");
-	//TwAddButton(bar, "apply translation", applyTranslation, NULL, "help='apply translation' group='tranfromations' ");
+	TwAddVarRW(bar, "translate X", TW_TYPE_DOUBLE, &g_translationX, "min=-30 max=30 step=1 keyIncr=right keyDecr=left   group='tranfromations' ");
+	TwAddVarRW(bar, "translate Y", TW_TYPE_DOUBLE, &g_translationY, "min=-30 max=30 step=1 keyIncr=up keyDecr=down   group='tranfromations' ");
+	TwAddVarRW(bar, "translate Z", TW_TYPE_DOUBLE, &g_translationZ, "min=-30 max=30 step=1 keyIncr=> keyDecr=<   group='tranfromations' ");
+	TwAddButton(bar, "apply translation", applyTranslation, NULL, "help='apply translation' group='tranfromations' ");
 
-	//add 'g_Zoom' to 'bar': this is a modifiable (RW) variable of type TW_TYPE_FLOAT. Its key shortcuts are [z] and [Z].
-	TwAddVarRW(bar, "Scale", TW_TYPE_FLOAT, &g_scale, " label='Scale' min=-10.0 max=10.0 step=0.01 group=tranfromations ");
+	TwAddVarRW(bar, "scale", TW_TYPE_DOUBLE, &g_scale, " min=0.01 max=2.5 step=0.01 keyIncr=+ keyDecr=-   group='tranfromations' ");
+	TwAddButton(bar, "apply scale", &applyScale, NULL, "help='apply scale' group='tranfromations' ");
+
+	TwAddVarRW(bar, "x-rotation", TW_TYPE_DOUBLE, &g_xRotation, "min = -360 max = 360 step=1 keyIncr=x keyDecr=X   group='tranfromations' ");
+	TwAddButton(bar, "apply x rotation", &applyXrotation, NULL, " help='apply scale' group='tranfromations' ");
+
+	TwAddVarRW(bar, "y-rotation", TW_TYPE_DOUBLE, &g_yRotation, "min = -360 max = 360 step=1 keyIncr=y keyDecr=Y   group='tranfromations' ");
+	TwAddButton(bar, "apply y rotation", &applyYrotation, NULL, " help='apply scale'  group='tranfromations' ");
+
+	TwAddVarRW(bar, "z-rotation", TW_TYPE_DOUBLE, &g_zRotation, "min = -360 max = 360 step=1 keyIncr=z keyDecr=Z   group='tranfromations' ");
+	TwAddButton(bar, "apply z rotation", &applyZrotation, NULL, " help='apply scale' group='tranfromations' ");
 
 	//add 'g_quaternion' to 'bar': this is a variable of type TW_TYPE_QUAT4D which defines the object's orientation using quaternions
-	TwAddVarRW(bar, "Rotation", TW_TYPE_QUAT4F, &g_quaternion, " label='Object rotation' opened=true help='This is object rotation' group=tranfromations ");
+	//TwAddVarRW(bar, "Rotation", TW_TYPE_QUAT4F, &g_quaternion, " label='Object rotation' opened=true help='This is object rotation' group=tranfromations ");
 
 	TwAddVarRW(bar, "ambient", TW_TYPE_DOUBLE, &g_ambient, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
 	TwAddVarRW(bar, "diffuse", TW_TYPE_DOUBLE, &g_diffuse, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
@@ -343,60 +361,90 @@ void initGraphics(int argc, char *argv[])
 }
 
 
-/*
-void drawScene()
-{
-	if (g_programID == 0)
-	{
-		return;
+void TW_CALL applyTranslation(void* clientData) {
+	if (g_translationX != 0.0 || g_translationY != 0.0 || g_translationZ != 0.0) {
+		Matrix4x4 mat(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, g_translationX, g_translationY, g_translationZ, 1);
+		if (g_space) {//world space
+			transformations_matrix *= mat;
+		}
+		else {//object space
+			transformations_matrix = mat*transformations_matrix;
+		}
+		glutPostRedisplay();
 	}
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-	glUseProgram(g_programID);
-
-	GLfloat mat_rotation[16];
-	ConvertQuaternionToMatrix(g_quaternion, mat_rotation);
-
-	GLuint mat_rotation_id = glGetUniformLocation(g_programID, "rotation");
-	glUniformMatrix4fv(mat_rotation_id, 1, false, mat_rotation); //glUniformMatrix4fv assumes that the matrix is given in column major order. i.e, the first four elements in "mat" array corresponds to the first column of the matrix
-
-	GLfloat mat_translation[16];
-	//createTranslationMatrix(translation_matrix[0][3], translation_matrix[1][3], translation_matrix[2][3] , mat_translation);
-	createTranslationMatrix(g_translationX, g_translationY, g_translationZ-5.0f, mat_translation);
-
-	GLuint mat_translation_id = glGetUniformLocation(g_programID, "translation");
-	glUniformMatrix4fv(mat_translation_id, 1, false, mat_translation);
-
-	GLfloat mat_projection[16];
-	createPerspectiveProjectionMatrix(1.0f, 10.0f, 0.25f, 0.25f, mat_projection);
-
-	GLuint mat_projection_id = glGetUniformLocation(g_programID, "projection");
-	glUniformMatrix4fv(mat_projection_id, 1, false, mat_projection);
-
-	GLuint scale_id = glGetUniformLocation(g_programID, "scale");
-	glUniform1f(scale_id, g_scale);
-
-	//GLuint space_id = glGetUniformLocation(g_programID, "space");
-	//glUniform1i(space_id, g_space);
-
-	if (g_drawWireframe)
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-	else
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-
-	//this will invoke the rendering of the model.
-	//GL_TRIANGLES means that each three consecutive vertices in the array are connected and treated as a single triangle.
-	//this means that vertices in our meshes have to be duplicated. to avoid duplication and render triangles with additional indices information, one can use glDrawElements
-	glDrawArrays(GL_TRIANGLES, 0, numV);
-
-	glPopAttrib();
 }
-*/
+void TW_CALL applyScale(void* clientData) {
+
+	if (g_scale != 1.0) {
+		Matrix4x4 mat(g_scale, 0, 0, 0, 0, g_scale, 0, 0, 0, 0, g_scale, 0, 0, 0, 0, 1);
+		if (g_space) {//world space
+			transformations_matrix *= mat;
+		}
+		else {//object space
+			transformations_matrix = mat*transformations_matrix;
+		}
+		glutPostRedisplay();
+	}
+}
+
+void TW_CALL applyXrotation(void* clientData) {
+	double teta = g_xRotation*PI / 180.0;
+	Matrix4x4 mat(1, 0, 0, 0,
+		0, cos(teta), sin(teta), 0,
+		0, -sin(teta), cos(teta), 0,
+		0, 0, 0, 1);
+	if (g_xRotation != 0.0) {
+		if (!g_space)//object space
+		{
+			transformations_matrix *= mat;
+			rotations_matrix = mat*rotations_matrix;
+		}
+		else {//world space
+			transformations_matrix = mat*transformations_matrix;
+			rotations_matrix *= mat;
+
+		}
+		glutPostRedisplay();
+	}
+}
+void TW_CALL applyYrotation(void* clientData) {
+	double teta = g_yRotation*PI / 180.0;
+	Matrix4x4 mat(cos(teta), 0, -sin(teta), 0,
+		0, 1, 0, 0,
+		sin(teta), 0, cos(teta), 0,
+		0, 0, 0, 1);
+	if (g_yRotation != 0.0) {
+		if (!g_space) {
+			transformations_matrix *= mat;
+			rotations_matrix = mat*rotations_matrix;
+		}
+		else {
+			transformations_matrix = mat*transformations_matrix;
+			rotations_matrix *= mat;
+		}
+		glutPostRedisplay();
+	}
+}
+void TW_CALL applyZrotation(void* clientData) {
+	double teta = g_zRotation*PI / 180.0;
+	Matrix4x4 mat(cos(teta), sin(teta), 0, 0,
+		-sin(teta), cos(teta), 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1);
+	if (g_zRotation != 0.0) {
+		if (!g_space) {
+			transformations_matrix *= mat;
+			rotations_matrix = mat*rotations_matrix;
+		}
+		else {
+			transformations_matrix = mat*transformations_matrix;
+			rotations_matrix *= mat;
+		}
+		glutPostRedisplay();
+	}
+}
+
+/*
 void transformation() {
 	if (g_scale != 1.0) {
 		Matrix4x4 mat(g_scale, 0, 0, 0, 0, g_scale, 0, 0, 0, 0, g_scale, 0, 0, 0, 0, 1);
@@ -409,7 +457,8 @@ void transformation() {
 		g_scale = 1.0;
 	}
 	if (g_translationX != 0.0 || g_translationY != 0.0 || g_translationZ != 0.0) {
-		Matrix4x4 mat(1, 0, 0, g_translationX, 0, 1, 0, g_translationY, 0, 0, 1, g_translationZ,0 ,0 ,0, 1);
+	//	Matrix4x4 mat(1, 0, 0, g_translationX, 0, 1, 0, g_translationY, 0, 0, 1, g_translationZ,0 ,0 ,0, 1);
+		Matrix4x4 mat(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, g_translationX, g_translationY, g_translationZ, 1);
 		if (g_space) {//world space
 			transformations_matrix *= mat;
 		}
@@ -423,6 +472,7 @@ void transformation() {
 		GLfloat mat_rotation[16];
 		ConvertQuaternionToMatrix(g_quaternion, mat_rotation);
 		Matrix4x4 mat(mat_rotation);
+		mat=mat.transpose();
 		if (g_space) {//world space
 			transformations_matrix *= mat;
 			rotations_matrix *= mat;
@@ -430,13 +480,24 @@ void transformation() {
 		else {//object space
 			transformations_matrix = mat*transformations_matrix;
 			rotations_matrix = mat*rotations_matrix;
-
 		}
-
+		g_quaternion[0] = 0.0f; g_quaternion[1] = 0.0f; g_quaternion[2] = 0.0f; g_quaternion[3] = 1.0f;
 	}
 
-
 }
+void transformation() {
+		Matrix4x4 matS(g_scale, 0, 0, 0, 0, g_scale, 0, 0, 0, 0, g_scale, 0, 0, 0, 0, 1);
+	
+		Matrix4x4 matT(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, g_translationX, g_translationY, g_translationZ, 1);
+	
+		GLfloat mat_rotation[16];
+		ConvertQuaternionToMatrix(g_quaternion, mat_rotation);
+		Matrix4x4 matR(mat_rotation);
+		matR=matR.transpose();
+
+	transformations_matrix = matS*matR*matT;
+}*/
+
 void applyLights() {
 
 	GLuint l1id = glGetUniformLocation(g_programID, "Light[0].isEnabled");
@@ -504,14 +565,13 @@ void drawScene()
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	transformation();
-
+	//transformation();
 	glUseProgram(g_programID);
 
 	Matrix4x4 MV(1, 0, 0, 0,
 				  0, 1, 0, 0,
-				  0, 0, 1, -5,
-				  0, 0, 0, 1);
+				  0, 0, 1, 0,
+				  0, 0, -5, 1);
 	MV = transformations_matrix*MV;
 
 	Camera cam({ 0, 0, 0, 1 }, (model.getCentroid())*MV, { 0,1,0,1 });
@@ -532,21 +592,21 @@ void drawScene()
 	Matrix4x4 MVP = MV*projectionMtrx;
 
 
-	//GLfloat MVMatrix[16];
-	//ConvertMat4x4ToArray(MV, MVMatrix);
-	GLfloat MVMatrix[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	GLfloat MVMatrix[16];
+	ConvertMat4x4ToArray(MV, MVMatrix);
+	//GLfloat MVMatrix[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 	GLuint mat_MV_id = glGetUniformLocation(g_programID, "MVMatrix");
 	glUniformMatrix4fv(mat_MV_id, 1, false, MVMatrix); //glUniformMatrix4fv assumes that the matrix is given in column major order. i.e, the first four elements in "mat" array corresponds to the first column of the matrix
 
 	GLfloat MVPMatrix[16];
 	ConvertMat4x4ToArray(MVP, MVPMatrix);
-	//GLfloat MVPMatrix[16] = { 0.1,0,0,0,0,0.1,0,0,0,0,0.1,0,0,0,0,1 };
+	//GLfloat MVPMatrix[16] = { 0.1,0,0,0.0,0,0.1,0,0,0,0,0.1,-5,0,0,0,1 };
 	GLuint mat_MVP_id = glGetUniformLocation(g_programID, "MVPMatrix");
 	glUniformMatrix4fv(mat_MVP_id, 1, false, MVPMatrix);
 
-	//GLfloat NormalMatrix[16];
-	//ConvertMat4x4ToArray(rotations_matrix, NormalMatrix);
-	GLfloat NormalMatrix[16] = { 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
+	GLfloat NormalMatrix[16];
+	ConvertMat4x4ToArray(rotations_matrix, NormalMatrix);
+	//GLfloat NormalMatrix[16] = { 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
 	GLuint mat_NM_id = glGetUniformLocation(g_programID, "NormalMatrix");
 	glUniformMatrix4fv(mat_NM_id, 1, false, NormalMatrix);
 
