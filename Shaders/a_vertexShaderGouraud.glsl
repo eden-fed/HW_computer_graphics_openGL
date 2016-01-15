@@ -30,7 +30,6 @@ out vec4 color;
 
 void main()
 {
-vec4 color;
 vec4 P;
 vec4 L[2];
 vec4 R[2];
