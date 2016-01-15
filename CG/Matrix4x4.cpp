@@ -137,6 +137,7 @@ const Matrix4x4 Matrix4x4::transpose()
 
 void Matrix4x4::setAllValues(double x1, double x2, double x3, double x4, double y1, double y2, double y3, double y4, double z1, double z2, double z3, double z4, double w1, double w2, double w3, double w4)
 {
+	//v1[R][C]
 	v1[0][0] = x1;
 	v1[0][1] = x2;
 	v1[0][2] = x3;
