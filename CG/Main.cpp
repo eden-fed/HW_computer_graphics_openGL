@@ -31,20 +31,20 @@ bool g_drawWireframe = false;
 
 unsigned int g_Color = 0xff0000ff;
 
-double g_Swidth = 1366;
-double g_Sheight = 768;
+float g_Swidth = 1366;
+float g_Sheight = 768;
 
-double g_near = 0.01;
-double g_far = 10000;
-double g_fovy = 60;
+float g_near = 0.01;
+float g_far = 10000;
+float g_fovy = 60;
 
 float g_translationX = 0.0;
 float g_translationY = 0.0;
 float g_translationZ = 0.0;
 
-double g_xRotation = 0.0;
-double g_yRotation = 0.0;
-double g_zRotation = 0.0;
+float g_xRotation = 0.0;
+float g_yRotation = 0.0;
+float g_zRotation = 0.0;
 
 //global veriables for glut functions
 bool g_reset = false;
@@ -57,16 +57,16 @@ bool g_space = true;//initialize to world space
 double g_normals_size = 1;
 
 
-double g_ambient = 0.5;
-double g_diffuse = 0.6;
-double g_specular = 0.7;
-double g_specularExp = 32;
-double g_xLightPosition = 0.0;
-double g_yLightPosition = 0.0;
-double g_zLightPosition = 0.0;
-double g_xLightDirection = 0.0;
-double g_yLightDirection = 0.0;
-double g_zLightDirection = -5;
+float g_ambient = 0.5;
+float g_diffuse = 0.6;
+float g_specular = 0.7;
+float g_specularExp = 32;
+float g_xLightPosition = 0.0;
+float g_yLightPosition = 0.0;
+float g_zLightPosition = 0.0;
+float g_xLightDirection = 0.0;
+float g_yLightDirection = 0.0;
+float g_zLightDirection = -5;
 bool g_lightType = false;
 //unsigned int g_lightIntensity = 0xffffff;
 float g_lightIntensity[4] = { 1, 0, 0 ,1 }; // red								 
@@ -162,45 +162,45 @@ int main(int argc, char *argv[])
 	TwAddVarRW(bar, "showBbox", TW_TYPE_BOOLCPP, &g_bbox, " help='boolean variable to indicate if to show the bbox or not.' ");
 
 	TwAddVarRW(bar, "showNormals", TW_TYPE_BOOLCPP, &g_normals, " help='boolean variable to indicate if to show normals or not.' group='normals'");
-	TwAddVarRW(bar, "normalsSize", TW_TYPE_DOUBLE, &g_normals_size, " min=0.1 max=100 step=0.1 keyIncr=t keyDecr=T help='Change notmals size (20=original size).' group='normals'");
+	TwAddVarRW(bar, "normalsSize", TW_TYPE_FLOAT, &g_normals_size, " min=0.1 max=100 step=0.1 keyIncr=t keyDecr=T help='Change notmals size (20=original size).' group='normals'");
 	TwAddVarRW(bar, "projectionType", TW_TYPE_BOOLCPP, &g_projectionType, " help='true = orthographic, false = perspective.' group='camera'");
-	TwAddVarRW(bar, "near", TW_TYPE_DOUBLE, &g_near, "step=0.01 keyIncr=n keyDecr=N  group='camera'");
-	TwAddVarRW(bar, "far", TW_TYPE_DOUBLE, &g_far, "step=0.1 keyIncr=f keyDecr=F  group='camera'");
-	TwAddVarRW(bar, "fovy", TW_TYPE_DOUBLE, &g_fovy, "step=0.1 keyIncr=v keyDecr=V  group='camera'");
+	TwAddVarRW(bar, "near", TW_TYPE_FLOAT, &g_near, "step=0.01 keyIncr=n keyDecr=N  group='camera'");
+	TwAddVarRW(bar, "far", TW_TYPE_FLOAT, &g_far, "step=0.1 keyIncr=f keyDecr=F  group='camera'");
+	TwAddVarRW(bar, "fovy", TW_TYPE_FLOAT, &g_fovy, "step=0.1 keyIncr=v keyDecr=V  group='camera'");
 
 	TwAddVarRW(bar, "centerCamera", TW_TYPE_BOOLCPP, &g_centerCam, "help='point the camera to the center of the model'  group='camera'");
 
-	TwAddVarRW(bar, "translate X", TW_TYPE_DOUBLE, &g_translationX, "min=-30 max=30 step=1 keyIncr=right keyDecr=left   group='tranfromations' ");
-	TwAddVarRW(bar, "translate Y", TW_TYPE_DOUBLE, &g_translationY, "min=-30 max=30 step=1 keyIncr=up keyDecr=down   group='tranfromations' ");
-	TwAddVarRW(bar, "translate Z", TW_TYPE_DOUBLE, &g_translationZ, "min=-30 max=30 step=1 keyIncr=> keyDecr=<   group='tranfromations' ");
+	TwAddVarRW(bar, "translate X", TW_TYPE_FLOAT, &g_translationX, "min=-30 max=30 step=1 keyIncr=right keyDecr=left   group='tranfromations' ");
+	TwAddVarRW(bar, "translate Y", TW_TYPE_FLOAT, &g_translationY, "min=-30 max=30 step=1 keyIncr=up keyDecr=down   group='tranfromations' ");
+	TwAddVarRW(bar, "translate Z", TW_TYPE_FLOAT, &g_translationZ, "min=-30 max=30 step=1 keyIncr=> keyDecr=<   group='tranfromations' ");
 	TwAddButton(bar, "apply translation", applyTranslation, NULL, "help='apply translation' group='tranfromations' ");
 
-	TwAddVarRW(bar, "scale", TW_TYPE_DOUBLE, &g_scale, " min=0.01 max=2.5 step=0.01 keyIncr=+ keyDecr=-   group='tranfromations' ");
+	TwAddVarRW(bar, "scale", TW_TYPE_FLOAT, &g_scale, " min=0.01 max=2.5 step=0.01 keyIncr=+ keyDecr=-   group='tranfromations' ");
 	TwAddButton(bar, "apply scale", &applyScale, NULL, "help='apply scale' group='tranfromations' ");
 
-	TwAddVarRW(bar, "x-rotation", TW_TYPE_DOUBLE, &g_xRotation, "min = -360 max = 360 step=1 keyIncr=x keyDecr=X   group='tranfromations' ");
+	TwAddVarRW(bar, "x-rotation", TW_TYPE_FLOAT, &g_xRotation, "min = -360 max = 360 step=1 keyIncr=x keyDecr=X   group='tranfromations' ");
 	TwAddButton(bar, "apply x rotation", &applyXrotation, NULL, " help='apply scale' group='tranfromations' ");
 
-	TwAddVarRW(bar, "y-rotation", TW_TYPE_DOUBLE, &g_yRotation, "min = -360 max = 360 step=1 keyIncr=y keyDecr=Y   group='tranfromations' ");
+	TwAddVarRW(bar, "y-rotation", TW_TYPE_FLOAT, &g_yRotation, "min = -360 max = 360 step=1 keyIncr=y keyDecr=Y   group='tranfromations' ");
 	TwAddButton(bar, "apply y rotation", &applyYrotation, NULL, " help='apply scale'  group='tranfromations' ");
 
-	TwAddVarRW(bar, "z-rotation", TW_TYPE_DOUBLE, &g_zRotation, "min = -360 max = 360 step=1 keyIncr=z keyDecr=Z   group='tranfromations' ");
+	TwAddVarRW(bar, "z-rotation", TW_TYPE_FLOAT, &g_zRotation, "min = -360 max = 360 step=1 keyIncr=z keyDecr=Z   group='tranfromations' ");
 	TwAddButton(bar, "apply z rotation", &applyZrotation, NULL, " help='apply scale' group='tranfromations' ");
 
 	//add 'g_quaternion' to 'bar': this is a variable of type TW_TYPE_QUAT4D which defines the object's orientation using quaternions
 	//TwAddVarRW(bar, "Rotation", TW_TYPE_QUAT4F, &g_quaternion, " label='Object rotation' opened=true help='This is object rotation' group=tranfromations ");
 
-	TwAddVarRW(bar, "ambient", TW_TYPE_DOUBLE, &g_ambient, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
-	TwAddVarRW(bar, "diffuse", TW_TYPE_DOUBLE, &g_diffuse, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
-	TwAddVarRW(bar, "specular", TW_TYPE_DOUBLE, &g_specular, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
-	TwAddVarRW(bar, "specularExp", TW_TYPE_DOUBLE, &g_specularExp, "min = 0 max = 1000 step=1 keyIncr=z keyDecr=Z   group='material' ");
+	TwAddVarRW(bar, "ambient", TW_TYPE_FLOAT, &g_ambient, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
+	TwAddVarRW(bar, "diffuse", TW_TYPE_FLOAT, &g_diffuse, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
+	TwAddVarRW(bar, "specular", TW_TYPE_FLOAT, &g_specular, "min = 0 max = 1000 step=0.1 keyIncr=z keyDecr=Z   group='material' ");
+	TwAddVarRW(bar, "specularExp", TW_TYPE_FLOAT, &g_specularExp, "min = 0 max = 1000 step=1 keyIncr=z keyDecr=Z   group='material' ");
 
-	TwAddVarRW(bar, "x-position", TW_TYPE_DOUBLE, &g_xLightPosition, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
-	TwAddVarRW(bar, "y-position", TW_TYPE_DOUBLE, &g_yLightPosition, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
-	TwAddVarRW(bar, "z-position", TW_TYPE_DOUBLE, &g_zLightPosition, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
-	TwAddVarRW(bar, "x-direction", TW_TYPE_DOUBLE, &g_xLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
-	TwAddVarRW(bar, "y-direction", TW_TYPE_DOUBLE, &g_yLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
-	TwAddVarRW(bar, "z-direction", TW_TYPE_DOUBLE, &g_zLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "x-position", TW_TYPE_FLOAT, &g_xLightPosition, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "y-position", TW_TYPE_FLOAT, &g_yLightPosition, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "z-position", TW_TYPE_FLOAT, &g_zLightPosition, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "x-direction", TW_TYPE_FLOAT, &g_xLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "y-direction", TW_TYPE_FLOAT, &g_yLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
+	TwAddVarRW(bar, "z-direction", TW_TYPE_FLOAT, &g_zLightDirection, "min = -1000 max = 1000 step=1 keyIncr=z keyDecr=Z   group='light' ");
 	TwAddVarRW(bar, "point/directional", TW_TYPE_BOOLCPP, &g_lightType, "help='false=point, true=directional'  group='light'");
 	//TwAddVarRW(bar, "light intensity", TW_TYPE_COLOR32, &g_lightIntensity, " coloralpha=true colormode=rgb group='light'");
 	TwAddVarRW(bar, "light intensity", TW_TYPE_COLOR4F, &g_lightIntensity, " colormode=rgb group='light'");
@@ -383,6 +383,7 @@ void TW_CALL applyScale(void* clientData) {
 		else {//object space
 			transformations_matrix = mat*transformations_matrix;
 		}
+
 		glutPostRedisplay();
 	}
 }
