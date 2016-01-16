@@ -501,45 +501,45 @@ void transformation() {
 
 void applyLights() {
 
-	GLuint l1id = glGetUniformLocation(g_programID, "Light[0].isEnabled");
+	GLuint l1id = glGetUniformLocation(g_programID, "Lights[0].isEnabled");
 	glUniform1i(l1id, g_light1Enable);
 
 	if (g_light1Enable) {
 
-		GLuint l1t = glGetUniformLocation(g_programID, "Light[0].isDirectional");
+		GLuint l1t = glGetUniformLocation(g_programID, "Lights[0].isDirectional");
 		glUniform1i(l1t, g_lightType);
 
-		GLuint l1p = glGetUniformLocation(g_programID, "Light[0].position");
+		GLuint l1p = glGetUniformLocation(g_programID, "Lights[0].position");
 		glUniform4f(l1p, g_xLightPosition, g_yLightPosition, g_zLightPosition,1);
 
-		GLuint l1d = glGetUniformLocation(g_programID, "Light[0].direction");
+		GLuint l1d = glGetUniformLocation(g_programID, "Lights[0].direction");
 		glUniform4f(l1d, g_xLightDirection, g_yLightDirection, g_zLightDirection, 1);
 
-		GLuint l1i = glGetUniformLocation(g_programID, "Light[0].intensity");
+		GLuint l1i = glGetUniformLocation(g_programID, "Lights[0].intensity");
 		glUniform4f(l1i, g_lightIntensity[0], g_lightIntensity[1], g_lightIntensity[2], g_lightIntensity[3]);
 	}
 
-	GLuint l2id = glGetUniformLocation(g_programID, "Light[1].isEnabled");
+	GLuint l2id = glGetUniformLocation(g_programID, "Lights[1].isEnabled");
 	glUniform1i(l2id, g_light2Enable);
 
 	if (g_light2Enable) {
 
-		GLuint l2t = glGetUniformLocation(g_programID, "Light[1].isDirectional");
+		GLuint l2t = glGetUniformLocation(g_programID, "Lights[1].isDirectional");
 		glUniform1i(l2t, g_lightType);
 
-		GLuint l2p = glGetUniformLocation(g_programID, "Light[1].position");
+		GLuint l2p = glGetUniformLocation(g_programID, "Lights[1].position");
 		glUniform4f(l2p, g_xLightPosition, g_yLightPosition, g_zLightPosition, 1);
 
-		GLuint l2d = glGetUniformLocation(g_programID, "Light[1].direction");
+		GLuint l2d = glGetUniformLocation(g_programID, "Lights[1].direction");
 		glUniform4f(l2d, g_xLightDirection, g_yLightDirection, g_zLightDirection, 1);
 
-		GLuint l2i = glGetUniformLocation(g_programID, "Light[1].intensity");
+		GLuint l2i = glGetUniformLocation(g_programID, "Lights[1].intensity");
 		glUniform4f(l2i, g_lightIntensity[0], g_lightIntensity[1], g_lightIntensity[2], g_lightIntensity[3]);
 	}
 
 	GLuint amb = glGetUniformLocation(g_programID, "AmbientProduct");
-	//glUniform4f(amb, g_ambientLight[0], g_ambientLight[1], g_ambientLight[2], g_ambientLight[3]);
-	glUniform4f(amb,1,0,0, 1);
+	glUniform4f(amb, g_ambientLight[0], g_ambientLight[1], g_ambientLight[2], g_ambientLight[3]);
+	//glUniform4f(amb,1,0,0, 1);
 
 
 
