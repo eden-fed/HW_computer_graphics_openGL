@@ -36,32 +36,38 @@ vec4 P;
 
 vec4 L[2];
 vec4 R[2];
-vec4 N=vec4(0.0,0.0,0.0,1.0);
+vec4 N;
 vec4 eyePosition=vec4(0.0,0.0,0.0,1.0);
 
-N.xyz = normalize(vec3(NormalMatrix * VertexNormal));
-P = MVMatrix * VertexPosition;
+	N.xyz = normalize(vec3(NormalMatrix * VertexNormal)); N.w=1;
 
-for (int lNum = 0; lNum < 2; ++lNum) {
-		L[lNum]=vec4(0.0,0.0,0.0,1.0);
-		R[lNum]=vec4(0.0,0.0,0.0,1.0);
-		if (Lights[lNum].isEnabled){
-			if (Lights[lNum].isDirectional)
-				L[lNum] = Lights[lNum].position - Lights[lNum].direction;
-			else
-				L[lNum] = Lights[lNum].position - P;
+	P = MVMatrix * VertexPosition;
 
-			float NL = max( dot(L[lNum], N), 0.0 );
-			R[lNum] = (N * (NL * 2)) - L[lNum];
-		}
-}
 
-gl_Position = MVPMatrix * VertexPosition;
+	//calculate L and R
+	for (int lNum = 0; lNum < 2; ++lNum) {
+			L[lNum]=vec4(0.0,0.0,0.0,1.0);
+			R[lNum]=vec4(0.0,0.0,0.0,1.0);
+			if (Lights[lNum].isEnabled){
+				if (Lights[lNum].isDirectional)
+				{
+					L[lNum] = Lights[lNum].position - Lights[lNum].direction;
+				}
+				else
+				{
+					L[lNum] = Lights[lNum].position - P;
+				}
 
-	L[0].xyz = normalize(vec3(L[0]));
-	L[1].xyz = normalize(vec3(L[1]));
-	R[0].xyz = normalize(vec3(R[0]));
-	R[1].xyz = normalize(vec3(R[1]));
+				float D=dot(vec3(L[lNum]), vec3(N));
+				float NL = max(D, 0.0 );
+				R[lNum] = ((NL * 2)*N) - L[lNum];
+
+				L[lNum].xyz = normalize(vec3(L[lNum]));
+				R[lNum].xyz = normalize(vec3(R[lNum]));
+			}
+	}
+
+	gl_Position = MVPMatrix * VertexPosition;
 
 	//calculate ambiant lighting
 	vec4 ambient = material.ambient * AmbientProduct;
@@ -71,17 +77,25 @@ gl_Position = MVPMatrix * VertexPosition;
 	vec4 specular = vec4(0.0,0.0,0.0,1.0) ;
 	
 
-
-	vec4 V=vec4(0.0,0.0,0.0,1.0);
-	V.xyz = normalize(vec3(eyePosition - P));					
+	vec4 V;
+	V.xyz = normalize(vec3(eyePosition - P)); V.w=1;		
+			
 	for (int lNum = 0; lNum < 2; ++lNum) {
 		if (Lights[lNum].isEnabled){
+					float D;
 					//calculate diffuse lighting
-					float NL = max( dot(L[lNum], N), 0.0 );
+					D=dot(vec3(L[lNum]), vec3(N));	
+					float NL = max( D, 0.0 );
 					diffuse += material.diffuse*NL*Lights[lNum].intensity;
 					
+					if( D < 0.0 ){
+					    specular = vec4(0.0, 0.0, 0.0, 1.0);
+						continue;
+					}
+
 					//calculate specular lighting
-					float RV = pow(dot(R[lNum], V),material.specularExp);
+					D=dot(vec3(R[lNum]), vec3(V));
+					float RV = pow(D,material.specularExp);
 					specular += material.specular*RV*Lights[lNum].intensity;
 		}
 
@@ -89,6 +103,6 @@ gl_Position = MVPMatrix * VertexPosition;
 
     color = ambient + diffuse + specular;
     color.a = 1.0;
-	texCoord    = vTexCoord;
+    texCoord    = vTexCoord;
 }
 
