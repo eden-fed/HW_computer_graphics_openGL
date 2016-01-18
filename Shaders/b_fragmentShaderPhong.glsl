@@ -3,9 +3,9 @@
 struct stLightProperties {
 bool isEnabled;
 bool isDirectional;
-vec3 position;
-vec3 direction;
-vec3 intensity;
+vec4 position;
+vec4 direction;
+vec4 intensity;
 };
 
 struct stMaterialProperties {
@@ -24,7 +24,7 @@ in vec4 R[2];
 
 //regular inputes
 uniform vec4 AmbientProduct;                
-uniform vec4 eyePosition                     //cammera position
+uniform vec4 eyePosition;                     //cammera position
 uniform stLightProperties Lights[2];         //array of cameras
 uniform stMaterialProperties material;       //material attributes
 
@@ -36,11 +36,6 @@ void main()
 	vec4 color;
 	vec4 eyePosition=vec4(0.0,0.0,0.0,1.0);
 
-	L[0].xyz = normalize(vec3(L[0]));
-	L[1].xyz = normalize(vec3(L[1]));
-	R[0].xyz = normalize(vec3(R[0]));
-	R[1].xyz = normalize(vec3(R[1]));
-
 	//calculate ambiant lighting
 	vec4 ambient = material.ambient * AmbientProduct;
 
@@ -48,16 +43,24 @@ void main()
 	vec4 diffuse  = vec4(0.0,0.0,0.0,1.0);
 	vec4 specular = vec4(0.0,0.0,0.0,1.0) ;
 	
-
-	vec4 V.xyz = normalize(vec3(eyePosition - P));					
+	vec4 V;
+	V.xyz = normalize(vec3(eyePosition - P)); V.w=1;	
 	for (int lNum = 0; lNum < 2; ++lNum) {
 		if (Lights[lNum].isEnabled){
+						float D;
 					//calculate diffuse lighting
-					float NL = max( dot(L[lNum], N), 0.0 );
+					D=dot(vec3(L[lNum]), vec3(N));	
+					float NL = max( D, 0.0 );
 					diffuse += material.diffuse*NL*Lights[lNum].intensity;
 					
+					if( D < 0.0 ){
+					    specular = vec4(0.0, 0.0, 0.0, 1.0);
+						continue;
+					}
+
 					//calculate specular lighting
-					float RV = pow(dot(R[lNum], V),material.specularExp);
+					D=dot(vec3(R[lNum]), vec3(V));
+					float RV = pow(D,material.specularExp);
 					specular += material.specular*RV*Lights[lNum].intensity;
 		}
 
