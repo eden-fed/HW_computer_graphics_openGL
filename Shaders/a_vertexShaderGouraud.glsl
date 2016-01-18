@@ -49,14 +49,10 @@ void main()
 				if (Lights[lNum].isDirectional)
 				{
 					L[lNum] = Lights[lNum].position - Lights[lNum].direction;
-					color = vec4(1.0, 0.0, 0.0, 1.0);
-					return;
 				}
 				else
 				{
 					L[lNum] = Lights[lNum].position - P;
-					color = vec4(1.0, 0.0, 0.0, 1.0);
-					return;
 				}
 
 				float D=dot(vec3(L[lNum]), vec3(N));
