@@ -92,8 +92,6 @@ Matrix4x4 saveCamera(1, 0, 0, 0,
 	0, 0, 1, 0,
 	0, 0, 0, 1);
 
-//stLightProperties light1;
-//stLightProperties light2;
 bool g_light1Enable=false;
 bool g_light2Enable=false;
 
@@ -312,6 +310,7 @@ void TW_CALL loadOBJModel(void *data)
 		//draw the object for the first time
 		model.setAll(objScene);
 		transformations_matrix.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the model matrix
+		rotations_matrix.setAllValues(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);//this is the rotations
 	}
 	else
 	{
