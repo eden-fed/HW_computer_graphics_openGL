@@ -22,7 +22,7 @@ uniform stMaterialProperties material;       //material attributes
 uniform vec4 AmbientProduct;  
 
 
-in mat4 VertexNormal;
+in vec4 VertexNormal;
 in vec4 VertexPosition;
 
 out vec4 color;
@@ -84,11 +84,6 @@ void main()
 					float NL = max( D, 0.0 );
 					diffuse += material.diffuse*NL*Lights[lNum].intensity;
 					
-					if( D < 0.0 ){
-					    specular = vec4(0.0, 0.0, 0.0, 1.0);
-						continue;
-					}
-
 					//calculate specular lighting
 					D=dot(vec3(R[lNum]), vec3(V));
 					float RV = pow(D,material.specularExp);

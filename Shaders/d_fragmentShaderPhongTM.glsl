@@ -54,11 +54,6 @@ void main()
 					D=dot(vec3(L[lNum]), vec3(N));	
 					float NL = max( D, 0.0 );
 					diffuse += material.diffuse*NL*Lights[lNum].intensity;
-					
-					if( D < 0.0 ){
-					    specular = vec4(0.0, 0.0, 0.0, 1.0);
-						continue;
-					}
 
 					//calculate specular lighting
 					D=dot(vec3(R[lNum]), vec3(V));
