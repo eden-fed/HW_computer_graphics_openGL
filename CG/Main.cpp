@@ -651,10 +651,9 @@ void Display()
 // Callback function called by GLUT when window size changes
 void Reshape(int width, int height)
 {
-	int WIDTH = 500;
-	int HEIGHT = 500;
+	int WIDTH = 300;
+	int HEIGHT = 300;
 	//this needed to be changed in order to have isotropic scale in x and y axis
-	glViewport(0, 0, width, height);
 	const float ar_origin = (float)WIDTH / (float)HEIGHT;
 	const float ar_new = (float)width / (float)height;
 
@@ -671,12 +670,7 @@ void Reshape(int width, int height)
 	float margin_y = (height - HEIGHT * scale_h) / 2;
 
 	glViewport(margin_x, margin_y, WIDTH * scale_w, HEIGHT * scale_h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, WIDTH / ar_origin, 0, HEIGHT / ar_origin, 0, 1.0);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 
 	// Send the new window size to AntTweakBar
 	TwWindowSize(width, height);
