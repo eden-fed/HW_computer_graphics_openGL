@@ -20,6 +20,12 @@
 
 #define BUFSIZE MAX_PATH
 #define PI 3.14159265358979323846 
+
+typedef enum {
+	GOURAUD,
+	PHONG
+} eShadingType;
+
 TCHAR g_Buffer[BUFSIZE];
 
 
@@ -57,7 +63,7 @@ bool g_space = true;//initialize to world space
 double g_normals_size = 1;
 
 
-float g_ambient = 0.5;
+float g_ambient = 0.1;
 float g_diffuse = 0.6;
 float g_specular = 0.7;
 float g_specularExp = 32;
@@ -75,15 +81,18 @@ float g_ambientLight[4] = { 1, 0, 0 ,1 }; // red
 
 TwType shadingType;
 bool g_mesh = false;
+eShadingType g_shadingType = GOURAUD;
 
 MeshModel model;
 int numV;//number of vertices
 
 GLuint g_vertexArrayID = 0;
 GLuint g_vertexBufferObjectID = 0;
-GLuint g_programID = 0;
-GLuint g_programIDG = 0;
-GLuint g_programIDP = 0;
+GLuint g_activeProgramID = 0;
+GLuint g_programID1 = 0;
+GLuint g_programID2 = 0;
+GLuint g_programID3 = 0;
+GLuint g_programID4 = 0;
 
 Matrix4x4 transformations_matrix;
 Matrix4x4 rotations_matrix;
@@ -209,7 +218,7 @@ int main(int argc, char *argv[])
 	TwAddVarRW(bar, "ambient light intensity", TW_TYPE_COLOR4F, &g_ambientLight, " colormode=rgb group='light'");
 
 	shadingType = TwDefineEnum("ShadingType", NULL, 0);
-	//TwAddVarRW(bar, "shading type", shadingType, &g_shadingType, " enum='0 {FLAT}, 1 {GOURAUD}, 2 {PHONG}' group='shading'");
+	TwAddVarRW(bar, "shading type", shadingType, &g_shadingType, " enum=' 0 {GOURAUD}, 1 {PHONG}' group='shading'");
 	TwAddVarRW(bar, "show mesh model", TW_TYPE_BOOLCPP, &g_mesh, "help='false=shading, true=meshmodel'  group='shading'");
 
 	// Call the GLUT main loop
@@ -218,6 +227,29 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+
+void initScene_helper(GLuint programID)
+{
+	if (!programID)
+	{
+		std::cout << "\nFatal Error in shader creation!\n\a\a\a";
+		return;
+	}
+
+	//get the identifier of the attribute "vPosition" in the active gl program
+	GLint vPosition_id = glGetAttribLocation(programID, "VertexPosition");
+	//this enables the generic vertex attribute array such that the values in the generic vertex attribute array
+	//will be accessed and used for rendering when calls are made to vertex array commands such as glDrawArrays or glDrawElements.
+	glEnableVertexAttribArray(vPosition_id);
+	//specifies an offset of the first component of the first generic vertex attribute in the array in the data store of the buffer currently bound to the GL_ARRAY_BUFFER target
+	glVertexAttribPointer(vPosition_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+
+
+	GLuint vNormal_id = glGetAttribLocation(programID, "VertexNormal");
+	glEnableVertexAttribArray(vNormal_id);
+	//note that the pointer offset is not 0, indicating that the normal data in the vertex array buffer starts right after the geometry data.
+	glVertexAttribPointer(vNormal_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(numV*sizeof(point4)));
+}
 
 
 void initScene()
@@ -256,29 +288,17 @@ void initScene()
 	}
 
 	//create, load, compile, attach vertex and fragment shader
-	g_programID = initShader("..\\Shaders\\a_vertexShaderGouraud.glsl", "..\\Shaders\\a_fragmentShaderGouraud.glsl");
-	//g_programIDG = initShader("..\\Shaders\\vertexShaderGouraud.glsl", "..\\Shaders\\fragmentShaderGouraud.glsl");
-	//g_programIDP = initShader("..\\Shaders\\vertexShaderPhong.glsl", "..\\Shaders\\fragmentShaderPhong.glsl");
 
-	if (!g_programID)
-	{
-		std::cout << "\nFatal Error in shader creation!\n\a\a\a";
-		return;
-	}
+	g_programID1 = initShader("..\\Shaders\\a_vertexShaderGouraud.glsl", "..\\Shaders\\a_fragmentShaderGouraud.glsl");
+	g_programID2 = initShader("..\\Shaders\\b_vertexShaderPhong.glsl", "..\\Shaders\\b_fragmentShaderPhong.glsl");
+	g_programID3 = initShader("..\\Shaders\\c_vertexShaderGouraudTM.glsl", "..\\Shaders\\c_fragmentShaderGouraudTM.glsl");
+	g_programID4 = initShader("..\\Shaders\\d_vertexShaderPhongTM.glsl", "..\\Shaders\\d_fragmentShaderPhongTM.glsl");
 
-	//get the identifier of the attribute "vPosition" in the active gl program
-	GLint vPosition_id = glGetAttribLocation(g_programID, "VertexPosition");
-	//this enables the generic vertex attribute array such that the values in the generic vertex attribute array
-	//will be accessed and used for rendering when calls are made to vertex array commands such as glDrawArrays or glDrawElements.
-	glEnableVertexAttribArray(vPosition_id);
-	//specifies an offset of the first component of the first generic vertex attribute in the array in the data store of the buffer currently bound to the GL_ARRAY_BUFFER target
-	glVertexAttribPointer(vPosition_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+	initScene_helper(g_programID1);
+	initScene_helper(g_programID2);
+	initScene_helper(g_programID3);
+	initScene_helper(g_programID4);
 
-
-	GLuint vNormal_id = glGetAttribLocation(g_programID, "VertexNormal");
-	glEnableVertexAttribArray(vNormal_id);
-	//note that the pointer offset is not 0, indicating that the normal data in the vertex array buffer starts right after the geometry data.
-	glVertexAttribPointer(vNormal_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(numV*sizeof(point4)));
 }
 
 
@@ -500,43 +520,43 @@ void transformation() {
 
 void applyLights() {
 
-	GLuint l1id = glGetUniformLocation(g_programID, "Lights[0].isEnabled");
+	GLuint l1id = glGetUniformLocation(g_activeProgramID, "Lights[0].isEnabled");
 	glUniform1i(l1id, g_light1Enable);
 
 	if (g_light1Enable) {
 
-		GLuint l1t = glGetUniformLocation(g_programID, "Lights[0].isDirectional");
+		GLuint l1t = glGetUniformLocation(g_activeProgramID, "Lights[0].isDirectional");
 		glUniform1i(l1t, g_lightType);
 
-		GLuint l1p = glGetUniformLocation(g_programID, "Lights[0].position");
+		GLuint l1p = glGetUniformLocation(g_activeProgramID, "Lights[0].position");
 		glUniform4f(l1p, g_xLightPosition, g_yLightPosition, g_zLightPosition,1);
 
-		GLuint l1d = glGetUniformLocation(g_programID, "Lights[0].direction");
+		GLuint l1d = glGetUniformLocation(g_activeProgramID, "Lights[0].direction");
 		glUniform4f(l1d, g_xLightDirection, g_yLightDirection, g_zLightDirection, 1);
 
-		GLuint l1i = glGetUniformLocation(g_programID, "Lights[0].intensity");
+		GLuint l1i = glGetUniformLocation(g_activeProgramID, "Lights[0].intensity");
 		glUniform4f(l1i, g_lightIntensity[0], g_lightIntensity[1], g_lightIntensity[2], g_lightIntensity[3]);
 	}
 
-	GLuint l2id = glGetUniformLocation(g_programID, "Lights[1].isEnabled");
+	GLuint l2id = glGetUniformLocation(g_activeProgramID, "Lights[1].isEnabled");
 	glUniform1i(l2id, g_light2Enable);
 
 	if (g_light2Enable) {
 
-		GLuint l2t = glGetUniformLocation(g_programID, "Lights[1].isDirectional");
+		GLuint l2t = glGetUniformLocation(g_activeProgramID, "Lights[1].isDirectional");
 		glUniform1i(l2t, g_lightType);
 
-		GLuint l2p = glGetUniformLocation(g_programID, "Lights[1].position");
+		GLuint l2p = glGetUniformLocation(g_activeProgramID, "Lights[1].position");
 		glUniform4f(l2p, g_xLightPosition, g_yLightPosition, g_zLightPosition, 1);
 
-		GLuint l2d = glGetUniformLocation(g_programID, "Lights[1].direction");
+		GLuint l2d = glGetUniformLocation(g_activeProgramID, "Lights[1].direction");
 		glUniform4f(l2d, g_xLightDirection, g_yLightDirection, g_zLightDirection, 1);
 
-		GLuint l2i = glGetUniformLocation(g_programID, "Lights[1].intensity");
+		GLuint l2i = glGetUniformLocation(g_activeProgramID, "Lights[1].intensity");
 		glUniform4f(l2i, g_lightIntensity[0], g_lightIntensity[1], g_lightIntensity[2], g_lightIntensity[3]);
 	}
 
-	GLuint amb = glGetUniformLocation(g_programID, "AmbientProduct");
+	GLuint amb = glGetUniformLocation(g_activeProgramID, "AmbientProduct");
 	glUniform4f(amb, g_ambientLight[0], g_ambientLight[1], g_ambientLight[2], g_ambientLight[3]);
 	//glUniform4f(amb,1,0,0, 1);
 
@@ -544,21 +564,21 @@ void applyLights() {
 
 }
 void applyMaterial() {
-	GLuint ma = glGetUniformLocation(g_programID, "material.ambient");
+	GLuint ma = glGetUniformLocation(g_activeProgramID, "material.ambient");
 	glUniform1f(ma, g_ambient);
 
-	GLuint md = glGetUniformLocation(g_programID, "material.diffuse");
+	GLuint md = glGetUniformLocation(g_activeProgramID, "material.diffuse");
 	glUniform1f(md, g_diffuse);
 
-	GLuint ms = glGetUniformLocation(g_programID, "material.specular");
+	GLuint ms = glGetUniformLocation(g_activeProgramID, "material.specular");
 	glUniform1f(ms, g_specular);
 
-	GLuint mse = glGetUniformLocation(g_programID, "material.specularExp");
+	GLuint mse = glGetUniformLocation(g_activeProgramID, "material.specularExp");
 	glUniform1f(mse, g_specularExp);
 }
 void drawScene()
 {
-	if (g_programID == 0)
+	if (g_activeProgramID == 0)
 	{
 		return;
 	}
@@ -566,7 +586,7 @@ void drawScene()
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	//transformation();
-	glUseProgram(g_programID);
+	glUseProgram(g_activeProgramID);
 
 	Matrix4x4 MV(1, 0, 0, 0,
 				  0, 1, 0, 0,
@@ -595,19 +615,19 @@ void drawScene()
 	GLfloat MVMatrix[16];
 	ConvertMat4x4ToArray(MV, MVMatrix);
 	//GLfloat MVMatrix[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
-	GLuint mat_MV_id = glGetUniformLocation(g_programID, "MVMatrix");
+	GLuint mat_MV_id = glGetUniformLocation(g_activeProgramID, "MVMatrix");
 	glUniformMatrix4fv(mat_MV_id, 1, false, MVMatrix); //glUniformMatrix4fv assumes that the matrix is given in column major order. i.e, the first four elements in "mat" array corresponds to the first column of the matrix
 
 	GLfloat MVPMatrix[16];
 	ConvertMat4x4ToArray(MVP, MVPMatrix);
 	//GLfloat MVPMatrix[16] = { 0.1,0,0,0.0,0,0.1,0,0,0,0,0.1,-5,0,0,0,1 };
-	GLuint mat_MVP_id = glGetUniformLocation(g_programID, "MVPMatrix");
+	GLuint mat_MVP_id = glGetUniformLocation(g_activeProgramID, "MVPMatrix");
 	glUniformMatrix4fv(mat_MVP_id, 1, false, MVPMatrix);
 
 	GLfloat NormalMatrix[16];
 	ConvertMat4x4ToArray(rotations_matrix, NormalMatrix);
 	//GLfloat NormalMatrix[16] = { 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
-	GLuint mat_NM_id = glGetUniformLocation(g_programID, "NormalMatrix");
+	GLuint mat_NM_id = glGetUniformLocation(g_activeProgramID, "NormalMatrix");
 	glUniformMatrix4fv(mat_NM_id, 1, false, NormalMatrix);
 
 	applyLights();
@@ -633,6 +653,13 @@ void drawScene()
 //callback function called by GLUT to render screen
 void Display()
 {
+	if (g_shadingType==GOURAUD) {
+		g_activeProgramID = g_programID1;
+	}
+	else {
+		g_activeProgramID = g_programID2;
+	}
+
 	glClearColor(0.0, 0.0, 0.0, 1.0); //set the background color to black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //init z-buffer and framebuffer
 
