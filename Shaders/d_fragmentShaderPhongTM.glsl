@@ -57,6 +57,7 @@ void main()
 
 					//calculate specular lighting
 					D=dot(vec3(R[lNum]), vec3(V));
+					D=max( D, 0.0 );
 					float RV = pow(D,material.specularExp);
 					specular += material.specular*RV*Lights[lNum].intensity;
 		}
