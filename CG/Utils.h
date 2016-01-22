@@ -20,6 +20,17 @@ protected:
 	GLfloat  w;
 };
 
+class tc4
+{
+public:
+	tc4(GLfloat _x, GLfloat _y) : x(_x), y(_y){};
+	tc4() : x(0.0), y(0.0){};
+
+protected:
+	GLfloat  x;
+	GLfloat  y;
+};
+
 
 class color4
 {

@@ -271,8 +271,8 @@ void initScene()
 
 	std::vector<point4>  positions;
 	std::vector<point4>  normals;
-
-	model.getAllVerticesOfInTriangles(positions, normals);
+	std::vector<tc4> texCoordinates;
+	model.getAllVerticesOfInTriangles(positions, normals, texCoordinates);
 
 	//create a vertex array object
 	glGenVertexArrays(1, &g_vertexArrayID);

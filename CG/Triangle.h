@@ -41,6 +41,7 @@ public:
 	inline Vector4& operator[](int index) { return vertices[index].vertex; }
 	inline const Vector4& operator[](int index) const { return vertices[index].vertex; }
 	inline Vector4& getNormal(int index) { return vertices[index].normal; }
+	inline TextureCrd& getTC(int index) { return vertices[index].texCoordinate; }
 	void setNormal(Vector4 n);
 
 	//class methods
