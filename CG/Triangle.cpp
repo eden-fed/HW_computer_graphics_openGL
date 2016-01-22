@@ -40,6 +40,27 @@ Triangle::Triangle(Vector4 & v1, Vector4 & v2, Vector4 & v3, Vector4 & n1, Vecto
 	memset(gradient, 0.0, sizeof(gradient));
 }
 
+Triangle::Triangle(Vector4 & v1, Vector4 & v2, Vector4 & v3, Vector4 & n1, Vector4 & n2, Vector4 & n3, Vector4 & t1, Vector4 & t2, Vector4 & t3)
+{
+	this->vertices[0].vertex = v1;
+	this->vertices[1].vertex = v2;
+	this->vertices[2].vertex = v3;
+	this->vertices[0].normal = n1;
+	this->vertices[1].normal = n2;
+	this->vertices[2].normal = n3;
+
+	this->vertices[0].texCoordinate.x = t1[0];
+	this->vertices[0].texCoordinate.y = t1[1];
+	this->vertices[1].texCoordinate.x = t2[0];
+	this->vertices[1].texCoordinate.y = t2[1];
+	this->vertices[2].texCoordinate.x = t3[0];
+	this->vertices[2].texCoordinate.y = t3[1];
+
+	this->normal = calcNormal();
+	this->area = 0;
+	memset(gradient, 0.0, sizeof(gradient));
+}
+
 Triangle::~Triangle()
 {
 }

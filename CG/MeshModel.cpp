@@ -48,8 +48,13 @@ void MeshModel::setAll(Wavefront_obj & J)
 {
 
 	bool has_normals = false;
+	bool has_texture = false;
+
 	if (J.m_normals.size() != 0) {
 		has_normals = true;
+	}
+	if (J.m_textureCoordinates.size() != 0) {
+		has_texture = true;
 	}
 	for (int i = 0; i < J.m_points.size(); i++) {
 		vertices.push_back(J.m_points[i]);
@@ -58,12 +63,24 @@ void MeshModel::setAll(Wavefront_obj & J)
 	this->moveCentroidToOrigin();
 	this->scale10units();
 
-	if (has_normals) {
+	if (has_normals && !has_texture) {
 		for (int i = 0; i < J.m_normals.size(); i++) {
 			normals.push_back(J.m_normals[i]);
 		}
 		for (int i = 0; i < J.m_faces.size(); i++) {
 			Triangle t(vertices[J.m_faces[i].v[0]], vertices[J.m_faces[i].v[1]], vertices[J.m_faces[i].v[2]], normals[J.m_faces[i].n[0]], normals[J.m_faces[i].n[1]], normals[J.m_faces[i].n[2]]);
+			faces.push_back(t);
+		}
+	}
+	if (has_normals && has_texture) {//run if the obj has texture mapping
+		for (int i = 0; i < J.m_normals.size(); i++) {
+			normals.push_back(J.m_normals[i]);
+		}
+		for (int i = 0; i < J.m_textureCoordinates.size(); i++) {
+			TexCoordinates.push_back(J.m_textureCoordinates[i]);
+		}
+		for (int i = 0; i < J.m_faces.size(); i++) {
+			Triangle t(vertices[J.m_faces[i].v[0]], vertices[J.m_faces[i].v[1]], vertices[J.m_faces[i].v[2]], normals[J.m_faces[i].n[0]], normals[J.m_faces[i].n[1]], normals[J.m_faces[i].n[2]],TexCoordinates[J.m_faces[i].t[0]], TexCoordinates[J.m_faces[i].t[1]], TexCoordinates[J.m_faces[i].t[2]]);
 			faces.push_back(t);
 		}
 	}

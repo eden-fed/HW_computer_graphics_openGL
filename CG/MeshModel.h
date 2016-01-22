@@ -18,6 +18,7 @@ class MeshModel
 
 public:
 //	Material material;
+	std::vector<Vector4> TexCoordinates;
 
 	//constructors
 	MeshModel();

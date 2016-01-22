@@ -1,10 +1,15 @@
 #pragma once
 #include "Vector4.h"
 //#include "Color.h"
+typedef struct {
+	float x;
+	float y;
+}TextureCrd;
 
 typedef struct {
 	Vector4 vertex;
 	Vector4 normal;
+	TextureCrd texCoordinate;
 }vertexInfo;
 
 class Triangle
@@ -19,6 +24,7 @@ public:
 	Triangle();
 	Triangle(Vector4& v1, Vector4& v2, Vector4& v3);
 	Triangle(Vector4& v1, Vector4& v2, Vector4& v3, Vector4& n1, Vector4& n2, Vector4& n3);
+	Triangle(Vector4& v1, Vector4& v2, Vector4& v3, Vector4& n1, Vector4& n2, Vector4& n3, Vector4& t1, Vector4& t2, Vector4& t3);
 
 	const Triangle & operator=(const Triangle & V);
 
