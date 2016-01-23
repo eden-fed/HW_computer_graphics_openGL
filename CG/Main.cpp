@@ -17,6 +17,7 @@
 #include <direct.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "lodepng.h"
 
 #define BUFSIZE MAX_PATH
 #define PI 3.14159265358979323846 
@@ -86,6 +87,9 @@ eShadingType g_shadingType = GOURAUD;
 MeshModel model;
 int numV;//number of vertices
 
+std::vector<unsigned char> g_Timage;
+unsigned g_Twidth, g_Theight;
+
 GLuint g_vertexArrayID = 0;
 GLuint g_vertexBufferObjectID = 0;
 GLuint g_activeProgramID = 0;
@@ -105,8 +109,10 @@ bool g_light1Enable=false;
 bool g_light2Enable=false;
 
 
-
 void TW_CALL loadOBJModel(void* clientData);
+void TW_CALL loadPNGFile(void* clientData);
+void TW_CALL Start(void* clientData);
+
 void TW_CALL applyTranslation(void* clientData);
 void TW_CALL applyScale(void* clientData);
 void TW_CALL applyXrotation(void* clientData);
@@ -160,7 +166,9 @@ int main(int argc, char *argv[])
 	TwDefine(" GLOBAL help='This example shows how to integrate AntTweakBar with GLUT and OpenGL.' "); // Message added to the help bar.
 	TwDefine(" TweakBar size='200 600' color='96 216 224' "); // change default tweak bar size and color
 
-	TwAddButton(bar, "LoadOBJ", loadOBJModel, NULL, "help='button to load obf file'");
+	TwAddButton(bar, "LoadOBJ", loadOBJModel, NULL, "help='button to load obj file'");
+	TwAddButton(bar, "loadPNG", loadPNGFile, NULL, "help='button to load PNG file'");
+	TwAddButton(bar, "Start", Start, NULL, "help='button to start file'");
 	TwAddSeparator(bar, NULL, NULL);
 
 	TwAddVarRW(bar, "reset", TW_TYPE_BOOLCPP, &g_reset, "help='reset everything'");
@@ -251,27 +259,38 @@ void initScene_helper(GLuint programID)
 	glVertexAttribPointer(vNormal_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(numV*sizeof(point4)));
 }
 
-/*void initTextureMap() {
-	GLuint textures[1];
-	glGenTextures(1, textures);
+void initTextureObject()
+{
+	// Texture size must be power of two for the primitive OpenGL version this is written for. Find next power of two.
+	size_t u2 = 1; while (u2 < g_Twidth) u2 *= 2;
+	size_t v2 = 1; while (v2 < g_Theight) v2 *= 2;
+	// Ratio for power of two version compared to actual version, to render the non power of two image with proper size.
+	double u3 = (double)g_Twidth / u2;
+	double v3 = (double)g_Theight / v2;
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	// Make power of two version of the image.
+	std::vector<unsigned char> image2(u2 * v2 * 4);
+	for (size_t y = 0; y < g_Theight; y++)
+		for (size_t x = 0; x < g_Twidth; x++)
+			for (size_t c = 0; c < 4; c++)
+			{
+				image2[4 * u2 * y + 4 * x + c] = g_Timage[4 * g_Twidth * y + 4 * x + c];
+			}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TextureSize, TextureSize, GL_RGB, GL_UNSIGNED_BYTE, image);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-}*/
+	// Enable the texture for OpenGL.
+	glEnable(GL_TEXTURE_2D);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //GL_NEAREST = no smoothing
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, u2, v2, 0, GL_RGBA, GL_UNSIGNED_BYTE, &image2[0]);
+}
 
 void initScene()
 {
 
 	std::vector<point4>  positions;
 	std::vector<point4>  normals;
-	std::vector<tc4> texCoordinates;
+	std::vector<point4> texCoordinates;
 	model.getAllVerticesOfInTriangles(positions, normals, texCoordinates);
 
 	//create a vertex array object
@@ -286,13 +305,15 @@ void initScene()
 	numV = positions.size();
 
 	//this will allocate memory for the buffer object on the GPU
-	glBufferData(GL_ARRAY_BUFFER, numV*2*sizeof(point4), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, numV*3*sizeof(point4), NULL, GL_STATIC_DRAW);
 
 	//this will copy the data from CPU memory to GPU memory
 	//glBufferSubData redefines the data store for the buffer object currently bound to target
 	glBufferSubData(GL_ARRAY_BUFFER, 0, numV*sizeof(point4), &positions[0]);
 	//the colors are appended to the buffer right after the positions
 	glBufferSubData(GL_ARRAY_BUFFER, numV*sizeof(point4), numV*sizeof(color4), &normals[0]);
+	//the TC are appended to the buffer right after the colors
+	glBufferSubData(GL_ARRAY_BUFFER, numV*2*sizeof(point4), numV*sizeof(texture4), &texCoordinates[0]);
 
 
 
@@ -356,6 +377,28 @@ void TW_CALL loadOBJModel(void *data)
 	std::cout << "The number of triangles in the model is: " << objScene.m_faces.size() << std::endl;
 	//clear = false;
 	//glutPostRedisplay();
+}
+
+void TW_CALL loadPNGFile(void *data)
+{
+	std::wstring str = getOpenFileName();
+	std::wcout << str << "\n";
+	char fileName[150];
+	std::wcstombs(fileName, str.c_str(), 150);
+
+	// Load file and decode image.
+	g_Timage.clear();
+	unsigned error = lodepng::decode(g_Timage, g_Twidth, g_Theight, fileName);
+
+	// If there's an error, display it.
+	if (error != 0)
+	{
+		std::cout << "error " << error << ": " << lodepng_error_text(error) << std::endl;
+	}
+}
+
+void TW_CALL Start(void *data)
+{
 	initScene();
 }
 
@@ -669,7 +712,7 @@ void drawScene()
 void Display()
 {
 	if (g_shadingType==GOURAUD) {
-		g_activeProgramID = g_programID1;
+		g_activeProgramID = g_programID3;
 	}
 	else {
 		g_activeProgramID = g_programID2;

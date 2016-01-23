@@ -20,23 +20,24 @@ protected:
 	GLfloat  w;
 };
 
-class tc4
-{
-public:
-	tc4(GLfloat _x, GLfloat _y) : x(_x), y(_y){};
-	tc4() : x(0.0), y(0.0){};
-
-protected:
-	GLfloat  x;
-	GLfloat  y;
-};
-
-
 class color4
 {
 public:
 	color4(GLfloat _r, GLfloat _g, GLfloat _b, GLfloat _a) : r(_r), g(_g), b(_b), a(_a) {};
 	color4() : r(0.0), g(0.0), b(0.0), a(1.0) {};
+
+protected:
+	GLfloat  r;
+	GLfloat  g;
+	GLfloat  b;
+	GLfloat  a;
+};
+
+class texture4
+{
+public:
+	texture4(GLfloat _r, GLfloat _g, GLfloat _b, GLfloat _a) : r(_r), g(_g), b(_b), a(_a) {};
+	texture4() : r(0.0), g(0.0), b(0.0), a(1.0) {};
 
 protected:
 	GLfloat  r;

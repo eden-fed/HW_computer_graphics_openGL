@@ -1,15 +1,12 @@
 #pragma once
 #include "Vector4.h"
 //#include "Color.h"
-typedef struct {
-	float x;
-	float y;
-}TextureCrd;
+
 
 typedef struct {
 	Vector4 vertex;
 	Vector4 normal;
-	TextureCrd texCoordinate;
+	Vector4 texCoordinate;
 }vertexInfo;
 
 class Triangle
@@ -41,7 +38,7 @@ public:
 	inline Vector4& operator[](int index) { return vertices[index].vertex; }
 	inline const Vector4& operator[](int index) const { return vertices[index].vertex; }
 	inline Vector4& getNormal(int index) { return vertices[index].normal; }
-	inline TextureCrd& getTC(int index) { return vertices[index].texCoordinate; }
+	inline Vector4& getTC(int index) { return vertices[index].texCoordinate; }
 	void setNormal(Vector4 n);
 
 	//class methods

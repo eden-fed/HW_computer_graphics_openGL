@@ -48,7 +48,7 @@ public:
 	void scale10units();
 	void moveCentroidToOrigin();
 
-	void getAllVerticesOfInTriangles(std::vector<point4>& positions, std::vector<point4>& normals, std::vector<tc4> tCrds); // get normal by index
+	void getAllVerticesOfInTriangles(std::vector<point4>& positions, std::vector<point4>& normals, std::vector<point4>& tCrds); // get normal by index
 	
 
 };

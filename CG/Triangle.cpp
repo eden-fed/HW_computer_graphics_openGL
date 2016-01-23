@@ -49,12 +49,12 @@ Triangle::Triangle(Vector4 & v1, Vector4 & v2, Vector4 & v3, Vector4 & n1, Vecto
 	this->vertices[1].normal = n2;
 	this->vertices[2].normal = n3;
 
-	this->vertices[0].texCoordinate.x = t1[0];
-	this->vertices[0].texCoordinate.y = t1[1];
-	this->vertices[1].texCoordinate.x = t2[0];
-	this->vertices[1].texCoordinate.y = t2[1];
-	this->vertices[2].texCoordinate.x = t3[0];
-	this->vertices[2].texCoordinate.y = t3[1];
+	this->vertices[0].texCoordinate[0] = t1[0];
+	this->vertices[0].texCoordinate[1] = t1[1];
+	this->vertices[1].texCoordinate[0] = t2[0];
+	this->vertices[1].texCoordinate[1] = t2[1];
+	this->vertices[2].texCoordinate[0] = t3[0];
+	this->vertices[2].texCoordinate[1] = t3[1];
 
 	this->normal = calcNormal();
 	this->area = 0;
