@@ -272,18 +272,18 @@ void initScene_helper(GLuint programID)
 
 void initTextureObject(GLuint programID)
 {
-	if (g_useTM) {
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, g_tex[0]);
-		GLuint TM = glGetUniformLocation(programID, "texMapHandle");
-		glUniform1i(TM, 0);
-	}
-
 	if (g_useNM) {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, g_tex[1]);
 		GLuint NM = glGetUniformLocation(programID, "normalMapHandle");
 		glUniform1i(NM, 1);
+	}
+
+	if (g_useTM) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, g_tex[0]);
+		GLuint TM = glGetUniformLocation(programID, "texMapHandle");
+		glUniform1i(TM, 0);
 	}
 }
 
