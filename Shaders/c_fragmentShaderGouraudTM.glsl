@@ -9,5 +9,6 @@ uniform sampler2D texMapHandle;
 
 void main() 
 { 
-  fColor = color * texture( texMapHandle, texCoord);
+  fColor = color + texture( texMapHandle, texCoord);
+  //fColor = texture( texMapHandle, texCoord);
 } 

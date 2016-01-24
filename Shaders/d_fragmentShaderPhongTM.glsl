@@ -68,5 +68,5 @@ void main()
     color.a = 1.0;
 	
 	//output color
-	outFragColor = color* texture( texMapHandle, texCoord );
+	outFragColor = color + texture( texMapHandle, texCoord );
 }

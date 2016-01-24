@@ -268,34 +268,20 @@ void initScene_helper(GLuint programID)
 
 void initTextureObject(GLuint programID)
 {
-	// Texture size must be power of two for the primitive OpenGL version this is written for. Find next power of two.
-	size_t u2 = 1; while (u2 < g_Twidth) u2 *= 2;
-	size_t v2 = 1; while (v2 < g_Theight) v2 *= 2;
-	// Ratio for power of two version compared to actual version, to render the non power of two image with proper size.
-	double u3 = (double)g_Twidth / u2;
-	double v3 = (double)g_Theight / v2;
-
-	// Make power of two version of the image.
-	std::vector<unsigned char> image2(u2 * v2 * 4);
-	for (size_t y = 0; y < g_Theight; y++)
-		for (size_t x = 0; x < g_Twidth; x++)
-			for (size_t c = 0; c < 4; c++)
-			{
-				image2[4 * u2 * y + 4 * x + c] = g_Timage[4 * g_Twidth * y + 4 * x + c];
-			}
-
-
 	// Enable the texture for OpenGL.
-	GLuint textures[1];
-	glGenTextures(1, textures);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //GL_NEAREST = no smoothing
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, u2, v2, 0, GL_RGBA, GL_UNSIGNED_BYTE, &image2[0]);
+	glEnable(GL_TEXTURE_2D);
+	GLuint tex; 
+	glGenTextures(1, &tex); 
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, g_Twidth, g_Theight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &g_Timage[0]);
 
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	GLuint TM = glGetUniformLocation(programID, "texMapHandle");
+	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(TM, 0);
 
 }
