@@ -279,10 +279,18 @@ void initTextureObject()
 
 
 	// Enable the texture for OpenGL.
-	glEnable(GL_TEXTURE_2D);
+	GLuint textures[1];
+	glGenTextures(1, textures);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //GL_NEAREST = no smoothing
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, u2, v2, 0, GL_RGBA, GL_UNSIGNED_BYTE, &image2[0]);
+
+
+	GLuint TM = glGetUniformLocation(g_activeProgramID, "texMapHandle");
+	glUniform1i(TM, 0);
+
 }
 
 void initScene()
@@ -399,6 +407,7 @@ void TW_CALL loadPNGFile(void *data)
 
 void TW_CALL Start(void *data)
 {
+	std::cout << "Started" << std::endl;
 	initScene();
 }
 

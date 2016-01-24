@@ -20,6 +20,17 @@ protected:
 	GLfloat  w;
 };
 
+class point2
+{
+public:
+	point2(GLfloat _x, GLfloat _y) : x(_x), y(_y) {};
+	point2() : x(0.0), y(0.0) {};
+
+protected:
+	GLfloat  x;
+	GLfloat  y;
+};
+
 class color4
 {
 public:

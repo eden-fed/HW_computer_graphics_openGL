@@ -24,7 +24,7 @@ in vec4 R[2];
 in vec2 texCoord;
 
 //regular inputes
-uniform sampler texture;
+uniform sampler2D texMapHandle;
 uniform vec4 AmbientProduct;                
 uniform vec4 eyePosition;                     //cammera position
 uniform stLightProperties Lights[2];         //array of cameras
@@ -68,5 +68,5 @@ void main()
     color.a = 1.0;
 	
 	//output color
-	outFragColor = color* texture( texture, texCoord );
+	outFragColor = color* texture( texMapHandle, texCoord );
 }

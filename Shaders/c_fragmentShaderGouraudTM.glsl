@@ -5,9 +5,10 @@ in vec2 texCoord;
 
 out vec4 fColor;
 
-uniform sampler texture;
+uniform sampler2D texMapHandle;
 
 void main() 
 { 
-  fColor = color * texture( texture, texCoord );
+  //fColor = color * texture( texMapHandle, texCoord.xy );
+  fColor=texture( texMapHandle, texCoord.xy );
 } 
