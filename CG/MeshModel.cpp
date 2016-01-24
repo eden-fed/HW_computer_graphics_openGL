@@ -176,7 +176,7 @@ void MeshModel::moveCentroidToOrigin()
 	transformMshMdlonlyVertices(M);
 }
 
-void MeshModel::getAllVerticesOfInTriangles(std::vector<point4>& positions, std::vector<point4>& normals, std::vector<point4>& tCrds)
+void MeshModel::getAllVerticesOfInTriangles(std::vector<point4>& positions, std::vector<point4>& normals, std::vector<point2>& tCrds)
 {
 	
 	for (int i = 0; i < faces.size(); i++) {
@@ -186,7 +186,7 @@ void MeshModel::getAllVerticesOfInTriangles(std::vector<point4>& positions, std:
 			point4 n(faces[i].getNormal(j)[0], faces[i].getNormal(j)[1], faces[i].getNormal(j)[2], 1.0);
 			normals.push_back(n);
 			//texture coordinates
-			point4 tc((faces[i].getTC(j))[0], (faces[i].getTC(j))[1], 0, 1);
+			point2 tc((faces[i].getTC(j))[0], (faces[i].getTC(j))[1]);
 			tCrds.push_back(tc);
 		}
 	}

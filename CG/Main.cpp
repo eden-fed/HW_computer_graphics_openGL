@@ -257,9 +257,16 @@ void initScene_helper(GLuint programID)
 	glEnableVertexAttribArray(vNormal_id);
 	//note that the pointer offset is not 0, indicating that the normal data in the vertex array buffer starts right after the geometry data.
 	glVertexAttribPointer(vNormal_id, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(numV*sizeof(point4)));
+
+
+	GLuint vTexCoord_id = glGetAttribLocation(programID, "vTexCoord");
+	glEnableVertexAttribArray(vTexCoord_id);
+	//note that the pointer offset is not 0, indicating that the normal data in the vertex array buffer starts right after the geometry data.
+	glVertexAttribPointer(vTexCoord_id, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(2*numV*sizeof(point4)));
+
 }
 
-void initTextureObject()
+void initTextureObject(GLuint programID)
 {
 	// Texture size must be power of two for the primitive OpenGL version this is written for. Find next power of two.
 	size_t u2 = 1; while (u2 < g_Twidth) u2 *= 2;
@@ -288,7 +295,7 @@ void initTextureObject()
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, u2, v2, 0, GL_RGBA, GL_UNSIGNED_BYTE, &image2[0]);
 
 
-	GLuint TM = glGetUniformLocation(g_activeProgramID, "texMapHandle");
+	GLuint TM = glGetUniformLocation(programID, "texMapHandle");
 	glUniform1i(TM, 0);
 
 }
@@ -298,7 +305,7 @@ void initScene()
 
 	std::vector<point4>  positions;
 	std::vector<point4>  normals;
-	std::vector<point4> texCoordinates;
+	std::vector<point2> texCoordinates;
 	model.getAllVerticesOfInTriangles(positions, normals, texCoordinates);
 
 	//create a vertex array object
@@ -321,7 +328,7 @@ void initScene()
 	//the colors are appended to the buffer right after the positions
 	glBufferSubData(GL_ARRAY_BUFFER, numV*sizeof(point4), numV*sizeof(color4), &normals[0]);
 	//the TC are appended to the buffer right after the colors
-	glBufferSubData(GL_ARRAY_BUFFER, numV*2*sizeof(point4), numV*sizeof(texture4), &texCoordinates[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, numV*2*sizeof(point4), numV*sizeof(point2), &texCoordinates[0]);
 
 
 
@@ -343,6 +350,8 @@ void initScene()
 	initScene_helper(g_programID3);
 	initScene_helper(g_programID4);
 
+	initTextureObject(g_programID3);
+	initTextureObject(g_programID4);
 }
 
 
