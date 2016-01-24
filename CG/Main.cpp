@@ -97,6 +97,8 @@ GLuint g_programID1 = 0;
 GLuint g_programID2 = 0;
 GLuint g_programID3 = 0;
 GLuint g_programID4 = 0;
+GLuint g_programID5 = 0;
+
 
 Matrix4x4 transformations_matrix;
 Matrix4x4 rotations_matrix;
@@ -271,18 +273,17 @@ void initScene_helper(GLuint programID)
 void initTextureObject(GLuint programID)
 {
 	if (g_useTM) {
-		GLuint TM = glGetUniformLocation(programID, "texMapHandle");
-		glUniform1i(TM, 0);
-
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, g_tex[0]);
+		GLuint TM = glGetUniformLocation(programID, "texMapHandle");
+		glUniform1i(TM, 0);
 	}
 
 	if (g_useNM) {
-		/*glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, tex[1]);
-		samplerArrayLoc = glGetUniformLocation(active_program, "textures");
-		glUniform1iv(samplerArrayLoc, 2, samplers);*/
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, g_tex[1]);
+		GLuint NM = glGetUniformLocation(programID, "normalMapHandle");
+		glUniform1i(NM, 1);
 	}
 }
 
@@ -305,7 +306,7 @@ void initScene()
 
 	numV = positions.size();
 
-	if (g_useTM) {
+	if (g_useTM || g_useNM) {
 		//this will allocate memory for the buffer object on the GPU
 		glBufferData(GL_ARRAY_BUFFER, numV * 3 * sizeof(point4), NULL, GL_STATIC_DRAW);
 	}
@@ -319,7 +320,7 @@ void initScene()
 	glBufferSubData(GL_ARRAY_BUFFER, 0, numV*sizeof(point4), &positions[0]);
 	//the colors are appended to the buffer right after the positions
 	glBufferSubData(GL_ARRAY_BUFFER, numV*sizeof(point4), numV*sizeof(color4), &normals[0]);
-	if (g_useTM) {
+	if (g_useTM || g_useNM) {
 		//the TC are appended to the buffer right after the colors
 		glBufferSubData(GL_ARRAY_BUFFER, numV * 2 * sizeof(point4), numV*sizeof(point2), &texCoordinates[0]);
 	}
@@ -337,14 +338,17 @@ void initScene()
 	g_programID2 = initShader("..\\Shaders\\b_vertexShaderPhong.glsl", "..\\Shaders\\b_fragmentShaderPhong.glsl");
 	g_programID3 = initShader("..\\Shaders\\c_vertexShaderGouraudTM.glsl", "..\\Shaders\\c_fragmentShaderGouraudTM.glsl");
 	g_programID4 = initShader("..\\Shaders\\d_vertexShaderPhongTM.glsl", "..\\Shaders\\d_fragmentShaderPhongTM.glsl");
+	g_programID5 = initShader("..\\Shaders\\f_vertexShaderPhongNM.glsl", "..\\Shaders\\f_fragmentShaderPhongNM.glsl");
 
 	initScene_helper(g_programID1);
 	initScene_helper(g_programID2);
 	initScene_helper(g_programID3);
 	initScene_helper(g_programID4);
+	initScene_helper(g_programID5);
 
 	initTextureObject(g_programID3);
 	initTextureObject(g_programID4);
+	initTextureObject(g_programID5);
 }
 
 
@@ -740,7 +744,10 @@ void drawScene()
 //callback function called by GLUT to render screen
 void Display()
 {
-	if (g_shadingType==GOURAUD) {
+	if (g_useNM) {
+		g_activeProgramID = g_programID5;
+	}
+	else if (g_shadingType==GOURAUD) {
 		if (g_useTM) {
 			g_activeProgramID = g_programID3;
 		}
