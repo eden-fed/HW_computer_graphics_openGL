@@ -13,6 +13,7 @@ uniform mat4 MVPMatrix;
 uniform mat4 MVMatrix;
 uniform mat4 NormalMatrix;
 uniform stLightProperties Lights[2];         //array of cameras
+uniform float Time;
 
 in vec4 VertexNormal;
 in vec4 VertexPosition;
@@ -26,6 +27,9 @@ out vec2 texCoord;
 
 void main()
 {
+	mat4 T=mat4(1.0);
+	T[3][0] = Time;
+
 	N.xyz = normalize(vec3(NormalMatrix * VertexNormal)); N.w=1;
 	P = MVMatrix * VertexPosition;
 
@@ -51,6 +55,6 @@ void main()
 			}
 	}
 
-	gl_Position = MVPMatrix * VertexPosition;
+	gl_Position = T * MVPMatrix * VertexPosition;
 	texCoord    = vTexCoord;
 }

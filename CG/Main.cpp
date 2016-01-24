@@ -86,6 +86,8 @@ eShadingType g_shadingType = GOURAUD;
 MeshModel model;
 int numV;//number of vertices
 
+GLfloat g_time=0.0;
+
 GLuint g_tex[2] = {0,0};
 bool g_useTM = false;
 bool g_useNM = false;
@@ -115,6 +117,7 @@ void TW_CALL loadOBJModel(void* clientData);
 void TW_CALL loadTMFile(void* clientData);
 void TW_CALL loadNMFile(void* clientData);
 void TW_CALL Start(void* clientData);
+void TW_CALL applyAnimation(void* clientData);
 
 void TW_CALL applyTranslation(void* clientData);
 void TW_CALL applyScale(void* clientData);
@@ -125,6 +128,7 @@ void TW_CALL applyLight1(void* clientData);
 void TW_CALL applyLight2(void* clientData);
 
 
+void initTime();
 void initScene();
 void initGraphics(int argc, char *argv[]);
 void drawScene();
@@ -179,7 +183,8 @@ int main(int argc, char *argv[])
 	TwAddVarRW(bar, "OW space", TW_TYPE_BOOLCPP, &g_space, " help='true=transform in world space ,false=transform in object space' ");
 	TwAddVarRW(bar, "OW Crd System", TW_TYPE_BOOLCPP, &g_showCrdSystem, " help='boolean variable to indicate if to show WO coordinate system or not.' ");
 	TwAddVarRW(bar, "showBbox", TW_TYPE_BOOLCPP, &g_bbox, " help='boolean variable to indicate if to show the bbox or not.' ");
-
+	
+	TwAddButton(bar, "Animation", applyAnimation, NULL, "help='button to start animation file'");
 	TwAddVarRW(bar, "showNormals", TW_TYPE_BOOLCPP, &g_normals, " help='boolean variable to indicate if to show normals or not.' group='normals'");
 	TwAddVarRW(bar, "normalsSize", TW_TYPE_FLOAT, &g_normals_size, " min=0.1 max=100 step=0.1 keyIncr=t keyDecr=T help='Change notmals size (20=original size).' group='normals'");
 	TwAddVarRW(bar, "projectionType", TW_TYPE_BOOLCPP, &g_projectionType, " help='true = orthographic, false = perspective.' group='camera'");
@@ -435,6 +440,7 @@ void TW_CALL Start(void *data)
 	initScene();
 }
 
+
 void initGraphics(int argc, char *argv[])
 {
 	// Initialize GLUT
@@ -667,6 +673,42 @@ void applyMaterial() {
 	GLuint mse = glGetUniformLocation(g_activeProgramID, "material.specularExp");
 	glUniform1f(mse, g_specularExp);
 }
+
+void TW_CALL applyAnimation(void *data) {
+
+	for (int k = 0; k < 4; k++) {
+		for (int i = 0; i < 30; i++) {
+			for (int j = 0; j < 555; j++) {
+			}
+			g_time += 0.01;
+			initTime();
+			Display();
+		}
+		for (int i = 0; i < 60; i++) {
+			for (int j = 0; j < 555; j++) {
+			}
+			g_time -= 0.01;
+			initTime();
+			Display();
+		}
+		for (int i = 0; i < 30; i++) {
+			for (int j = 0; j < 555; j++) {
+			}
+			g_time += 0.01;
+			initTime();
+			Display();
+		}
+	}
+	g_time = 0;
+}
+
+void initTime() {
+	GLuint T = glGetUniformLocation(g_activeProgramID, "Time");
+	glUniform1f(T, g_time);
+}
+
+
+
 void drawScene()
 {
 	if (g_activeProgramID == 0)
@@ -723,6 +765,7 @@ void drawScene()
 
 	applyLights();
 	applyMaterial();
+	initTime();
 
 	if (g_drawWireframe)
 	{
