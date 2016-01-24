@@ -3,7 +3,7 @@
 #include <AntTweakBar/include/AntTweakBar.h>
 #include <Glew/include/gl/glew.h>
 #include <freeglut/include/GL/freeglut.h>
-
+#include "SOIL.h"
 
 #include <vector>
 #include <Windows.h>
@@ -17,7 +17,6 @@
 #include <direct.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "lodepng.h"
 
 #define BUFSIZE MAX_PATH
 #define PI 3.14159265358979323846 
@@ -89,6 +88,7 @@ int numV;//number of vertices
 
 std::vector<unsigned char> g_Timage;
 unsigned g_Twidth, g_Theight;
+GLuint g_tex[2];
 
 GLuint g_vertexArrayID = 0;
 GLuint g_vertexBufferObjectID = 0;
@@ -110,7 +110,8 @@ bool g_light2Enable=false;
 
 
 void TW_CALL loadOBJModel(void* clientData);
-void TW_CALL loadPNGFile(void* clientData);
+void TW_CALL loadTMFile(void* clientData);
+void TW_CALL loadNMFile(void* clientData);
 void TW_CALL Start(void* clientData);
 
 void TW_CALL applyTranslation(void* clientData);
@@ -167,7 +168,8 @@ int main(int argc, char *argv[])
 	TwDefine(" TweakBar size='200 600' color='96 216 224' "); // change default tweak bar size and color
 
 	TwAddButton(bar, "LoadOBJ", loadOBJModel, NULL, "help='button to load obj file'");
-	TwAddButton(bar, "loadPNG", loadPNGFile, NULL, "help='button to load PNG file'");
+	TwAddButton(bar, "load_TM", loadTMFile, NULL, "help='button to load PNG file'");
+	TwAddButton(bar, "load_NM", loadNMFile, NULL, "help='button to load PNG file'");
 	TwAddButton(bar, "Start", Start, NULL, "help='button to start file'");
 	TwAddSeparator(bar, NULL, NULL);
 
@@ -268,21 +270,11 @@ void initScene_helper(GLuint programID)
 
 void initTextureObject(GLuint programID)
 {
-	// Enable the texture for OpenGL.
-	glEnable(GL_TEXTURE_2D);
-	GLuint tex; 
-	glGenTextures(1, &tex); 
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, g_Twidth, g_Theight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &g_Timage[0]);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
 	GLuint TM = glGetUniformLocation(programID, "texMapHandle");
-	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(TM, 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, g_tex[0]);
 
 }
 
@@ -382,22 +374,38 @@ void TW_CALL loadOBJModel(void *data)
 	//glutPostRedisplay();
 }
 
-void TW_CALL loadPNGFile(void *data)
+void TW_CALL loadTMFile(void *data)
 {
 	std::wstring str = getOpenFileName();
 	std::wcout << str << "\n";
 	char fileName[150];
 	std::wcstombs(fileName, str.c_str(), 150);
 
-	// Load file and decode image.
-	g_Timage.clear();
-	unsigned error = lodepng::decode(g_Timage, g_Twidth, g_Theight, fileName);
+	g_tex[0] = SOIL_load_OGL_texture
+		(
+			fileName,
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+	);
 
-	// If there's an error, display it.
-	if (error != 0)
-	{
-		std::cout << "error " << error << ": " << lodepng_error_text(error) << std::endl;
-	}
+}
+
+void TW_CALL loadNMFile(void *data)
+{
+	std::wstring str = getOpenFileName();
+	std::wcout << str << "\n";
+	char fileName[150];
+	std::wcstombs(fileName, str.c_str(), 150);
+
+	g_tex[1] = SOIL_load_OGL_texture
+		(
+			fileName,
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT
+			);
+
 }
 
 void TW_CALL Start(void *data)
