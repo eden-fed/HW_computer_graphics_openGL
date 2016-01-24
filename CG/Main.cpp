@@ -86,9 +86,9 @@ eShadingType g_shadingType = GOURAUD;
 MeshModel model;
 int numV;//number of vertices
 
-std::vector<unsigned char> g_Timage;
-unsigned g_Twidth, g_Theight;
-GLuint g_tex[2];
+GLuint g_tex[2] = {0,0};
+bool g_useTM = false;
+bool g_useNM = false;
 
 GLuint g_vertexArrayID = 0;
 GLuint g_vertexBufferObjectID = 0;
@@ -270,12 +270,20 @@ void initScene_helper(GLuint programID)
 
 void initTextureObject(GLuint programID)
 {
-	GLuint TM = glGetUniformLocation(programID, "texMapHandle");
-	glUniform1i(TM, 0);
+	if (g_useTM) {
+		GLuint TM = glGetUniformLocation(programID, "texMapHandle");
+		glUniform1i(TM, 0);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, g_tex[0]);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, g_tex[0]);
+	}
 
+	if (g_useNM) {
+		/*glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, tex[1]);
+		samplerArrayLoc = glGetUniformLocation(active_program, "textures");
+		glUniform1iv(samplerArrayLoc, 2, samplers);*/
+	}
 }
 
 void initScene()
@@ -297,17 +305,24 @@ void initScene()
 
 	numV = positions.size();
 
-	//this will allocate memory for the buffer object on the GPU
-	glBufferData(GL_ARRAY_BUFFER, numV*3*sizeof(point4), NULL, GL_STATIC_DRAW);
+	if (g_useTM) {
+		//this will allocate memory for the buffer object on the GPU
+		glBufferData(GL_ARRAY_BUFFER, numV * 3 * sizeof(point4), NULL, GL_STATIC_DRAW);
+	}
+	else {
+		glBufferData(GL_ARRAY_BUFFER, numV * 2 * sizeof(point4), NULL, GL_STATIC_DRAW);
+	}
+
 
 	//this will copy the data from CPU memory to GPU memory
 	//glBufferSubData redefines the data store for the buffer object currently bound to target
 	glBufferSubData(GL_ARRAY_BUFFER, 0, numV*sizeof(point4), &positions[0]);
 	//the colors are appended to the buffer right after the positions
 	glBufferSubData(GL_ARRAY_BUFFER, numV*sizeof(point4), numV*sizeof(color4), &normals[0]);
-	//the TC are appended to the buffer right after the colors
-	glBufferSubData(GL_ARRAY_BUFFER, numV*2*sizeof(point4), numV*sizeof(point2), &texCoordinates[0]);
-
+	if (g_useTM) {
+		//the TC are appended to the buffer right after the colors
+		glBufferSubData(GL_ARRAY_BUFFER, numV * 2 * sizeof(point4), numV*sizeof(point2), &texCoordinates[0]);
+	}
 
 
 	if (!SetCurrentDirectory(g_Buffer))
@@ -376,6 +391,7 @@ void TW_CALL loadOBJModel(void *data)
 
 void TW_CALL loadTMFile(void *data)
 {
+	g_useTM = true;
 	std::wstring str = getOpenFileName();
 	std::wcout << str << "\n";
 	char fileName[150];
@@ -393,6 +409,7 @@ void TW_CALL loadTMFile(void *data)
 
 void TW_CALL loadNMFile(void *data)
 {
+	g_useNM = true;
 	std::wstring str = getOpenFileName();
 	std::wcout << str << "\n";
 	char fileName[150];
@@ -724,10 +741,20 @@ void drawScene()
 void Display()
 {
 	if (g_shadingType==GOURAUD) {
-		g_activeProgramID = g_programID3;
+		if (g_useTM) {
+			g_activeProgramID = g_programID3;
+		}
+		else {
+			g_activeProgramID = g_programID1;
+		}
 	}
-	else {
-		g_activeProgramID = g_programID2;
+	else {//phong
+		if (g_useTM) {
+			g_activeProgramID = g_programID4;
+		}
+		else {
+			g_activeProgramID = g_programID2;
+		}
 	}
 
 	glClearColor(0.0, 0.0, 0.0, 1.0); //set the background color to black
