@@ -675,24 +675,24 @@ void applyMaterial() {
 }
 
 void TW_CALL applyAnimation(void *data) {
-
+	int sleep = 4000;
 	for (int k = 0; k < 4; k++) {
 		for (int i = 0; i < 30; i++) {
-			for (int j = 0; j < 555; j++) {
+			for (int j = 0; j < sleep; j++) {
 			}
 			g_time += 0.01;
 			initTime();
 			Display();
 		}
 		for (int i = 0; i < 60; i++) {
-			for (int j = 0; j < 555; j++) {
+			for (int j = 0; j < sleep; j++) {
 			}
 			g_time -= 0.01;
 			initTime();
 			Display();
 		}
 		for (int i = 0; i < 30; i++) {
-			for (int j = 0; j < 555; j++) {
+			for (int j = 0; j < sleep; j++) {
 			}
 			g_time += 0.01;
 			initTime();
