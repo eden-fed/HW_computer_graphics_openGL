@@ -30,8 +30,11 @@ void main()
 	mat4 T=mat4(1.0);
 	T[3][0] = Time;
 
-	N.xyz = normalize(vec3(NormalMatrix * VertexNormal)); N.w=1;
+	N=VertexPosition+VertexNormal;N.w=1;
+	N=MVMatrix*N;
 	P = MVMatrix * VertexPosition;
+	//N.xyz = normalize(vec3(NormalMatrix * VertexNormal)); N.w=1;
+	N.xyz = normalize(vec3(N-P)); N.w=1;
 
 	for (int lNum = 0; lNum < 2; ++lNum) {
 			L[lNum]=vec4(0.0,0.0,0.0,1.0);

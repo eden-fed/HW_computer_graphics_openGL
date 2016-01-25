@@ -36,8 +36,13 @@ void main()
 	vec4 N;
 	vec4 eyePosition=vec4(0.0,0.0,0.0,1.0);
 
+	
+	N=VertexPosition+VertexNormal;N.w=1;
+	N=MVMatrix*N;
 	P = MVMatrix * VertexPosition;
-	N.xyz = normalize(vec3(NormalMatrix * VertexNormal)); N.w=1;
+	//N.xyz = normalize(vec3(NormalMatrix * VertexNormal)); N.w=1;
+	N.xyz = normalize(vec3(N-P)); N.w=1;
+	
 
 	//calculate L and R
 	for (int lNum = 0; lNum < 2; ++lNum) {
