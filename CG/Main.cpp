@@ -767,7 +767,7 @@ void drawScene()
 	applyMaterial();
 	initTime();
 
-	if (g_drawWireframe)
+	if (g_mesh)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
