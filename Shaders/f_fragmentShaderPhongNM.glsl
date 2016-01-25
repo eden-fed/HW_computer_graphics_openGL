@@ -40,8 +40,8 @@ void main()
 	NM.r*=N.x;
 	NM.g*=N.y;
 	NM.b*=N.z;
-	NM.a=1;
-	NM.xyz= normalize(vec3(NM));
+	vec4 normal;
+	normal.xyz = normalize(vec3(NM)); normal.w=1;
 	
 	
 	vec4 color;
@@ -60,7 +60,7 @@ void main()
 		if (Lights[lNum].isEnabled){
 						float D;
 					//calculate diffuse lighting
-					D=dot(vec3(L[lNum]), vec3(NM));	
+					D=dot(vec3(L[lNum]), vec3(normal));	
 					float NL = max( D, 0.0 );
 					diffuse += material.diffuse*NL*Lights[lNum].intensity;
 
