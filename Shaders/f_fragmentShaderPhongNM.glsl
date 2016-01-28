@@ -38,7 +38,9 @@ void main()
 {
 	vec4 NM=texture( normalMapHandle, texCoord );
 	// Expand the range of the normal value from (0, +1) to (-1, +1).
-	NM = (NM * 2.0) - 1.0;
+	NM.x = (2.0 * NM.x) - 1.0;
+	NM.y = (2.0 * NM.y) - 1.0;
+	NM.z = (2.0 * NM.z) - 1.0;
 	NM.r*=N.x;
 	NM.g*=N.y;
 	NM.b*=N.z;
@@ -79,5 +81,5 @@ void main()
     color.a = 1.0;
 	
 	//output color
-	outFragColor = color + texture( texMapHandle, texCoord );
+	outFragColor = color ;//+ texture( texMapHandle, texCoord );
 }
