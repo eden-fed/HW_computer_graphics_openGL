@@ -19,7 +19,8 @@
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 	#include <wingdi.h>
-	#include <GL/gl.h>
+	//#include <GL/gl.h>
+    #include <Glew/include/gl/glew.h>
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
 	/*	I can't test this Apple stuff!	*/
 	#include <OpenGL/gl.h>
@@ -1876,10 +1877,16 @@ int query_NPOT_capability( void )
 	if( has_NPOT_capability == SOIL_CAPABILITY_UNKNOWN )
 	{
 		/*	we haven't yet checked for the capability, do so	*/
-		if(
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_ARB_texture_non_power_of_two" ) )
-			)
+		GLint n, i;
+		char* ext;
+		int flag = 0;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+		for (i = 0; i < n; i++) {
+			ext = glGetStringi(GL_EXTENSIONS, i);
+			if (!strcmp(ext,"GL_ARB_texture_non_power_of_two"))
+				flag ++;
+		}
+		if (flag == 1)
 		{
 			/*	not there, flag the failure	*/
 			has_NPOT_capability = SOIL_CAPABILITY_NONE;
@@ -1899,16 +1906,20 @@ int query_tex_rectangle_capability( void )
 	if( has_tex_rectangle_capability == SOIL_CAPABILITY_UNKNOWN )
 	{
 		/*	we haven't yet checked for the capability, do so	*/
-		if(
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_ARB_texture_rectangle" ) )
-		&&
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_EXT_texture_rectangle" ) )
-		&&
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_NV_texture_rectangle" ) )
-			)
+		GLint n, i;
+		char* ext;
+		int flag = 0;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+		for (i = 0; i < n; i++) {
+			ext=glGetStringi(GL_EXTENSIONS, i);
+			if (!strcmp(ext, "GL_ARB_texture_rectangle"))
+				flag++;
+			else if(!strcmp(ext, "GL_EXT_texture_rectangle"))
+				flag++;
+			else if(!strcmp(ext, "GL_NV_texture_rectangle"))
+				flag++;
+		}
+		if(flag==3)
 		{
 			/*	not there, flag the failure	*/
 			has_tex_rectangle_capability = SOIL_CAPABILITY_NONE;
@@ -1928,13 +1939,18 @@ int query_cubemap_capability( void )
 	if( has_cubemap_capability == SOIL_CAPABILITY_UNKNOWN )
 	{
 		/*	we haven't yet checked for the capability, do so	*/
-		if(
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_ARB_texture_cube_map" ) )
-		&&
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_EXT_texture_cube_map" ) )
-			)
+		GLint n, i;
+		char* ext;
+		int flag = 0;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+		for (i = 0; i < n; i++) {
+			ext = glGetStringi(GL_EXTENSIONS, i);
+			if (!strcmp(ext, "GL_ARB_texture_cube_map"))
+				flag++;
+			else if(!strcmp(ext,"GL_EXT_texture_cube_map"))
+				flag++;
+		}
+		if (flag == 2)
 		{
 			/*	not there, flag the failure	*/
 			has_cubemap_capability = SOIL_CAPABILITY_NONE;
@@ -1954,9 +1970,16 @@ int query_DXT_capability( void )
 	if( has_DXT_capability == SOIL_CAPABILITY_UNKNOWN )
 	{
 		/*	we haven't yet checked for the capability, do so	*/
-		if( NULL == strstr(
-				(char const*)glGetString( GL_EXTENSIONS ),
-				"GL_EXT_texture_compression_s3tc" ) )
+		GLint n, i;
+		char* ext;
+		int flag = 0;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+		for (i = 0; i < n; i++) {
+			ext = glGetStringi(GL_EXTENSIONS, i);
+			if (!strcmp(ext,"GL_EXT_texture_compression_s3tc"))
+				flag =1;
+		}
+		if (flag == 1)
 		{
 			/*	not there, flag the failure	*/
 			has_DXT_capability = SOIL_CAPABILITY_NONE;
