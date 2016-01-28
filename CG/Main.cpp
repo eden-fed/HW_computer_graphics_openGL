@@ -77,7 +77,7 @@ bool g_lightType = false;
 //unsigned int g_lightIntensity = 0xffffff;
 float g_lightIntensity[4] = { 1, 0, 0 ,1 }; // red								 
 
-float g_ambientLight[4] = { 1, 0, 0 ,1 }; // red								 
+float g_ambientLight[4] = { 1, 1, 1 ,1 }; // white								 
 
 TwType shadingType;
 bool g_mesh = false;
@@ -179,14 +179,14 @@ int main(int argc, char *argv[])
 	TwAddButton(bar, "Start", Start, NULL, "help='button to start file'");
 	TwAddSeparator(bar, NULL, NULL);
 
-	TwAddVarRW(bar, "reset", TW_TYPE_BOOLCPP, &g_reset, "help='reset everything'");
+	//TwAddVarRW(bar, "reset", TW_TYPE_BOOLCPP, &g_reset, "help='reset everything'");
 	TwAddVarRW(bar, "OW space", TW_TYPE_BOOLCPP, &g_space, " help='true=transform in world space ,false=transform in object space' ");
-	TwAddVarRW(bar, "OW Crd System", TW_TYPE_BOOLCPP, &g_showCrdSystem, " help='boolean variable to indicate if to show WO coordinate system or not.' ");
-	TwAddVarRW(bar, "showBbox", TW_TYPE_BOOLCPP, &g_bbox, " help='boolean variable to indicate if to show the bbox or not.' ");
+	//TwAddVarRW(bar, "OW Crd System", TW_TYPE_BOOLCPP, &g_showCrdSystem, " help='boolean variable to indicate if to show WO coordinate system or not.' ");
+	//TwAddVarRW(bar, "showBbox", TW_TYPE_BOOLCPP, &g_bbox, " help='boolean variable to indicate if to show the bbox or not.' ");
 	
 	TwAddButton(bar, "Animation", applyAnimation, NULL, "help='button to start animation file'");
-	TwAddVarRW(bar, "showNormals", TW_TYPE_BOOLCPP, &g_normals, " help='boolean variable to indicate if to show normals or not.' group='normals'");
-	TwAddVarRW(bar, "normalsSize", TW_TYPE_FLOAT, &g_normals_size, " min=0.1 max=100 step=0.1 keyIncr=t keyDecr=T help='Change notmals size (20=original size).' group='normals'");
+	//TwAddVarRW(bar, "showNormals", TW_TYPE_BOOLCPP, &g_normals, " help='boolean variable to indicate if to show normals or not.' group='normals'");
+	//TwAddVarRW(bar, "normalsSize", TW_TYPE_FLOAT, &g_normals_size, " min=0.1 max=100 step=0.1 keyIncr=t keyDecr=T help='Change notmals size (20=original size).' group='normals'");
 	TwAddVarRW(bar, "projectionType", TW_TYPE_BOOLCPP, &g_projectionType, " help='true = orthographic, false = perspective.' group='camera'");
 	TwAddVarRW(bar, "near", TW_TYPE_FLOAT, &g_near, "step=0.01 keyIncr=n keyDecr=N  group='camera'");
 	TwAddVarRW(bar, "far", TW_TYPE_FLOAT, &g_far, "step=0.1 keyIncr=f keyDecr=F  group='camera'");
