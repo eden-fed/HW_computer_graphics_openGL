@@ -1884,7 +1884,7 @@ int query_NPOT_capability( void )
 		for (i = 0; i < n; i++) {
 			ext = glGetStringi(GL_EXTENSIONS, i);
 			if (!strcmp(ext,"GL_ARB_texture_non_power_of_two"))
-				flag ++;
+				flag =1;
 		}
 		if (flag == 1)
 		{
@@ -1910,16 +1910,17 @@ int query_tex_rectangle_capability( void )
 		char* ext;
 		int flag = 0;
 		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+		int x=0, y=0, z=0;
 		for (i = 0; i < n; i++) {
 			ext=glGetStringi(GL_EXTENSIONS, i);
 			if (!strcmp(ext, "GL_ARB_texture_rectangle"))
-				flag++;
+				x=1;
 			else if(!strcmp(ext, "GL_EXT_texture_rectangle"))
-				flag++;
+				y=1;
 			else if(!strcmp(ext, "GL_NV_texture_rectangle"))
-				flag++;
+				z=1;
 		}
-		if(flag==3)
+		if(x&&y&&z)
 		{
 			/*	not there, flag the failure	*/
 			has_tex_rectangle_capability = SOIL_CAPABILITY_NONE;
@@ -1943,14 +1944,15 @@ int query_cubemap_capability( void )
 		char* ext;
 		int flag = 0;
 		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+		int x = 0, y = 0;
 		for (i = 0; i < n; i++) {
 			ext = glGetStringi(GL_EXTENSIONS, i);
 			if (!strcmp(ext, "GL_ARB_texture_cube_map"))
-				flag++;
-			else if(!strcmp(ext,"GL_EXT_texture_cube_map"))
-				flag++;
+				x = 1;
+			else if (!strcmp(ext, "GL_EXT_texture_cube_map"))
+				y = 1;
 		}
-		if (flag == 2)
+		if (x&&y)
 		{
 			/*	not there, flag the failure	*/
 			has_cubemap_capability = SOIL_CAPABILITY_NONE;
